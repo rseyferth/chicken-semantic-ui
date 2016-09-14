@@ -1,0 +1,21 @@
+{
+  "name": "chicken-semantic-ui",
+  "authors": [
+    "Ruben Seyferth <ruben.seyferth@gmail.com>"
+  ],
+  "description": "Semantic UI integeration for the Chicken framework",
+  "main": "build/chicken-semantic-ui.js",
+  "license": "MIT",
+  "homepage": "",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "chickenjs": "*",
+    "semantic": "2.2.4"
+  }
+}

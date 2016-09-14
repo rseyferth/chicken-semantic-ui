@@ -42,6 +42,16 @@ gulp.task('templates', () => {
 });
 
 
+gulp.task('watch', () => {
+
+	gulp.watch(['src/**/*.js', 'templates/**/*.hbs'], ['scripts']);
+	
+	
+});
+
+	
+
+
 
 
 

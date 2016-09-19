@@ -17,5 +17,6 @@
   "dependencies": {
     "chickenjs": "*",
     "semantic": "2.2.4"
-  }
+  },
+  "version": "0.1.0"
 }

@@ -2,10 +2,15 @@
 const gulp = require('gulp');
 const gulpLoadPlugins = require('gulp-load-plugins');
 const $ = gulpLoadPlugins();
+const gutil = require('gulp-util');
 
-gulp.task('scripts', ['templates'] ,() => {
+gulp.task('scripts', ['templates'] ,(done) => {
 	return gulp.src(['.tmp/templates.js', 'src/**/*.js'])
-		.pipe($.babel())
+		.pipe($.babel()).on('error', (err) => {
+      		gutil.log(gutil.colors.red('[Compilation Error]'));
+      		gutil.log(gutil.colors.red(err.message));
+      		done();
+    	})
 		.pipe($.concat('chicken-semantic-ui.js'))
 		.pipe(gulp.dest('build'));
 });
@@ -44,7 +49,7 @@ gulp.task('templates', () => {
 
 gulp.task('watch', () => {
 
-	gulp.watch(['src/**/*.js', 'templates/**/*.hbs'], ['scripts']);
+	gulp.watch(['src/**/*.js', 'templates/**/*.hbs'], ['templates', 'scripts']);
 	
 	
 });

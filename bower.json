@@ -15,8 +15,12 @@
     "tests"
   ],
   "dependencies": {
-    "chickenjs": "*",
-    "semantic": "2.2.4"
+    "chickenjs": "0.*",
+    "semantic": "2.2.4",
+    "semantic-ui-daterangepicker": "master"
   },
-  "version": "0.1.0"
+  "version": "0.1.0",
+  "resolutions": {
+    "moment": "^2.15.0"
+  }
 }

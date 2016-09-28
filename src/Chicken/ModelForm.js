@@ -3,6 +3,26 @@ Chicken.component('model-form', 'semantic-ui:chicken.model-form', function() {
 	this.tagName = 'form';
 	this.cssClass = 'ui form';
 
+
+	this.when('ready', () => {
+
+		console.log(this.$element);
+		this.$element.form({ 
+
+			onSuccess: (event) => {
+
+				event.preventDefault();
+				this.sendAction('save');
+
+			}
+
+		});
+
+	});
+
+
+
+
 	this.action('save', () => {
 
 		// Set to busy

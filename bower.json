@@ -19,7 +19,7 @@
     "semantic": "2.2.4",
     "semantic-ui-daterangepicker": "master"
   },
-  "version": "0.1.2",
+  "version": "0.1.3",
   "resolutions": {
     "moment": "^2.15.0"
   }

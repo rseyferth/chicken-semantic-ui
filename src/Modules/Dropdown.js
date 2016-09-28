@@ -46,7 +46,7 @@ Chicken.component('ui-dropdown', false, function() {
 			// Get value
 			this._updating = true;		// To prevent feedback loop
 			let value = this.get('value');
-			if (this.attributes.valueIsArray) {
+			if (this.attributes.valueIsArray && value && value.toArray) {
 				value = value.toArray();
 			}
 

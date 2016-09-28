@@ -1,7 +1,7 @@
 'use strict';
 
 /** START TEMPLATES **/
-Chicken.Dom.View.TemplateCache.set('semantic-ui:modules.dropdown', '<input type="hidden" name={{name}}>\n{{yield}}');
+Chicken.Dom.View.TemplateCache.set('semantic-ui:chicken.model-form', '{{yield}}\n\n{{#if error}}\n\t<div class="ui negative icon message">\n\t\t<i class="warning icon"></i>\n\t\t<div class="content">\n\t\t\t{{error}}\t\t\t\n\t\t</div>\t\t\n\t</div>\n{{/if}}\n');
 /** END TEMPLATES **/
 'use strict';
 
@@ -127,6 +127,38 @@ var getOptions = function getOptions(defaultValues, component) {
 };
 'use strict';
 
+Chicken.component('model-form', 'semantic-ui:chicken.model-form', function () {
+	var _this = this;
+
+	this.tagName = 'form';
+	this.cssClass = 'ui form';
+
+	this.action('save', function () {
+
+		// Set to busy
+		_this.set('error', false);
+		_this.$element.addClass('loading');
+
+		// Go and save it
+		_this.get('model').save({
+
+			uri: _this.get('uri')
+
+		}).then(function (result) {
+
+			_this.$element.removeClass('loading');
+		}, function (error) {
+
+			// Show the error
+			_this.set('error', error.getMessage());
+
+			// No longer loading
+			_this.$element.removeClass('loading');
+		});
+	});
+});
+'use strict';
+
 Chicken.component('ui-button', false, function () {
 	var _this = this;
 
@@ -208,7 +240,7 @@ Chicken.component('ui-dropdown', false, function () {
 			// Get value
 			_this._updating = true; // To prevent feedback loop
 			var value = _this.get('value');
-			if (_this.attributes.valueIsArray) {
+			if (_this.attributes.valueIsArray && value && value.toArray) {
 				value = value.toArray();
 			}
 

@@ -58,6 +58,7 @@ let Component = Chicken.component('ui-date-range-picker', false, function() {
 
 		}
 
+		
 
 		// Enable datepicker
 		$el.daterangepicker(this.settings, (startDate, endDate, label) => {
@@ -79,70 +80,70 @@ Component.Locales = {
 
 	en: {
 		separator: ' - ',
-        																				applyLabel: 'Apply',
-        																				cancelLabel: 'Cancel',
-        																				fromLabel: 'From',
-        																				toLabel: 'To',
-        																				customRangeLabel: 'Custom',
-        																				weekLabel: 'W',
-        																				daysOfWeek: [
-            										'Su',
-            										'Mo',
-            										'Tu',
-            										'We',
-            										'Th',
-            										'Fr',
-            										'Sa'
+        																																								applyLabel: 'Apply',
+        																																								cancelLabel: 'Cancel',
+        																																								fromLabel: 'From',
+        																																								toLabel: 'To',
+        																																								customRangeLabel: 'Custom',
+        																																								weekLabel: 'W',
+        																																								daysOfWeek: [
+            																				'Su',
+            																				'Mo',
+            																				'Tu',
+            																				'We',
+            																				'Th',
+            																				'Fr',
+            																				'Sa'
         ],
-        																				monthNames: [
-            										'January',
-            										'February',
-            										'March',
-            										'April',
-            										'May',
-            										'June',
-            										'July',
-            										'August',
-            										'September',
-            										'October',
-            										'November',
-            										'December'
+        																																								monthNames: [
+            																				'January',
+            																				'February',
+            																				'March',
+            																				'April',
+            																				'May',
+            																				'June',
+            																				'July',
+            																				'August',
+            																				'September',
+            																				'October',
+            																				'November',
+            																				'December'
         ],
-        																				firstDay: 1
+        																																								firstDay: 1
 	},
 
 	nl: {
 		separator: ' - ',
-        																				applyLabel: 'Apply',
-        																				cancelLabel: 'Cancel',
-        																				fromLabel: 'From',
-        																				toLabel: 'To',
-        																				customRangeLabel: 'Custom',
-        																				weekLabel: 'W',
-        																				daysOfWeek: [
-            										'Zo',
-            										'Ma',
-            										'Di',
-            										'Wo',
-            										'Do',
-            										'Vr',
-            										'Za'
+        																																								applyLabel: 'Apply',
+        																																								cancelLabel: 'Cancel',
+        																																								fromLabel: 'From',
+        																																								toLabel: 'To',
+        																																								customRangeLabel: 'Custom',
+        																																								weekLabel: 'W',
+        																																								daysOfWeek: [
+            																				'Zo',
+            																				'Ma',
+            																				'Di',
+            																				'Wo',
+            																				'Do',
+            																				'Vr',
+            																				'Za'
         ],
-        																				monthNames: [
-            										'januari',
-            										'februari',
-            										'maart',
-            										'april',
-            										'mei',
-            										'juni',
-            										'juli',
-            										'augustus',
-            										'september',
-            										'october',
-            										'november',
-            										'december'
+        																																								monthNames: [
+            																				'januari',
+            																				'februari',
+            																				'maart',
+            																				'april',
+            																				'mei',
+            																				'juni',
+            																				'juli',
+            																				'augustus',
+            																				'september',
+            																				'october',
+            																				'november',
+            																				'december'
         ],
-        																				firstDay: 1
+        																																								firstDay: 1
 	}
 
 };

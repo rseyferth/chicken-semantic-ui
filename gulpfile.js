@@ -5,7 +5,7 @@ const $ = gulpLoadPlugins();
 const gutil = require('gulp-util');
 
 gulp.task('scripts', ['templates'] ,(done) => {
-	return gulp.src(['.tmp/templates.js', 'src/**/*.js'])
+	return gulp.src(['.tmp/templates.js', 'src/js/**/*.js'])
 		.pipe($.babel()).on('error', (err) => {
       		gutil.log(gutil.colors.red('[Compilation Error]'));
       		gutil.log(gutil.colors.red(err.message));
@@ -15,6 +15,22 @@ gulp.task('scripts', ['templates'] ,(done) => {
 		.pipe(gulp.dest('build'));
 });
 
+gulp.task('styles', [], () => {
+
+	return gulp.src('src/sass/*.scss')
+		.pipe($.plumber())
+		.pipe($.sourcemaps.init())
+		.pipe($.sass.sync({
+			outputStyle: 'expanded',
+			precision: 10,
+			includePaths: ['.']
+		}).on('error', $.sass.logError))
+		.pipe($.autoprefixer({browsers: ['> 1%', 'last 2 versions', 'Firefox ESR']}))
+		.pipe($.sourcemaps.write())
+		.pipe(gulp.dest('build'));		
+
+});
+
 function lint(files, options) {
 	return gulp.src(files)
 		.pipe($.eslint(options))
@@ -22,7 +38,7 @@ function lint(files, options) {
 }
 
 gulp.task('lint', () => {
-	return lint('src/**/*.js', {
+	return lint('src/**/js/*.js', {
 		fix: true
 	})
 	.pipe(gulp.dest('src/'));
@@ -49,7 +65,8 @@ gulp.task('templates', () => {
 
 gulp.task('watch', () => {
 
-	gulp.watch(['src/**/*.js', 'templates/**/*.hbs'], ['templates', 'scripts']);
+	gulp.watch(['src/js/**/*.js', 'templates/**/*.hbs'], ['templates', 'scripts']);
+	gulp.watch(['src/sass/*.scss'], ['styles']);
 	
 	
 });
@@ -60,7 +77,7 @@ gulp.task('watch', () => {
 
 
 
-gulp.task('build', ['lint', 'scripts']);
+gulp.task('build', ['lint', 'scripts', 'styles']);
 
 gulp.task('default', [], () => {
 	gulp.start('build');

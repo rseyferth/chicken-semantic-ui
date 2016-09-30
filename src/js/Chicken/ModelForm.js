@@ -6,7 +6,6 @@ Chicken.component('model-form', 'semantic-ui:chicken.model-form', function() {
 
 	this.when('ready', () => {
 
-		console.log(this.$element);
 		this.$element.form({ 
 
 			onSuccess: (event) => {

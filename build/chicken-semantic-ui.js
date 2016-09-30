@@ -7,7 +7,7 @@ Chicken.Dom.View.TemplateCache.set('semantic-ui:chicken.model-form', '{{yield}}\
 
 /**
  * This component uses the following package:
- *	https://github.com/BreadMaker/semantic-ui-daterangepicker
+ *	http://www.daterangepicker.com/
  */
 
 var Component = Chicken.component('ui-date-range-picker', false, function () {
@@ -20,39 +20,43 @@ var Component = Chicken.component('ui-date-range-picker', false, function () {
 		// Options
 		_this.settings = getOptions({
 
-			format: 'LL', // (string) Date format as accepted by Moment
+			format: undefined, // (string) Date format as accepted by Moment
 
+			// Daterangepicker settings
 			startDate: undefined, // (Date object, moment object or string) The start of the initially selected date range
 			endDate: undefined, // (Date object, moment object or string) The end of the initially selected date range
 			minDate: undefined, // (Date object, moment object or string) The earliest date a user may select
 			maxDate: undefined, // (Date object, moment object or string) The latest date a user may select
 			dateLimit: undefined, // (object) The maximum span between the selected start and end dates. Can have any property you can add to a moment object (i.e. days, months)
-			showDropdowns: false, // (boolean) Show year and month select boxes above calendars to jump to a specific month and year
-			showWeekNumbers: false, // (boolean) Show localized week numbers at the start of each week on the calendars
-			showISOWeekNumbers: false, // (boolean) Show ISO week numbers at the start of each week on the calendars
-			timePicker: false, // (boolean) Allow selection of dates with times, not just dates
+			showDropdowns: undefined, // (boolean) Show year and month select boxes above calendars to jump to a specific month and year
+			showWeekNumbers: undefined, // (boolean) Show localized week numbers at the start of each week on the calendars
+			showISOWeekNumbers: undefined, // (boolean) Show ISO week numbers at the start of each week on the calendars
+			timePicker: undefined, // (boolean) Allow selection of dates with times, not just dates
 			timePickerIncrement: undefined, // (number) Increment of the minutes selection list for times (i.e. 30 to allow only selection of times ending in 0 or 30)
-			timePicker24Hour: true, // (boolean) Use 24-hour instead of 12-hour times, removing the AM/PM selection
-			timePickerSeconds: false, // (boolean) Show seconds in the timePicker
+			timePicker24Hour: undefined, // (boolean) Use 24-hour instead of 12-hour times, removing the AM/PM selection
+			timePickerSeconds: undefined, // (boolean) Show seconds in the timePicker
 			ranges: undefined, // (object) Set predefined date ranges the user can select from. Each key is the label for the range, and its value an array with two dates representing the bounds of the range
-			showCustomRangeLabel: false, // (boolean) Displays an item labeled 'Custom Range' at the end of the list of predefined ranges, when the ranges option is used. This option will be highlighted whenever the current date range selection does not match one of the predefined ranges. Clicking it will display the calendars to select a new range.
-			alwaysShowCalendars: false, // (boolean) Normally, if you use the ranges option to specify pre-defined date ranges, calendars for choosing a custom date range are not shown until the user clicks 'Custom Range'. When this option is set to true, the calendars for choosing a custom date range are always shown instead.
+			showCustomRangeLabel: undefined, // (boolean) Displays an item labeled "Custom Range" at the end of the list of predefined ranges, when the ranges option is used. This option will be highlighted whenever the current date range selection does not match one of the predefined ranges. Clicking it will display the calendars to select a new range.
+			alwaysShowCalendars: undefined, // (boolean) Normally, if you use the ranges option to specify pre-defined date ranges, calendars for choosing a custom date range are not shown until the user clicks "Custom Range". When this option is set to true, the calendars for choosing a custom date range are always shown instead.
 			opens: undefined, // (string: 'left'/'right'/'center') Whether the picker appears aligned to the left, to the right, or centered under the HTML element it's attached to
 			drops: undefined, // (string: 'down' or 'up') Whether the picker appears below (default) or above the HTML element it's attached to
-			buttonClasses: undefined, // (array) CSS class names that will be added to all buttons in the picker
+			buttonClasses: 'small button', // (array) CSS class names that will be added to all buttons in the picker
 			applyClass: undefined, // (string) CSS class string that will be added to the apply button
 			cancelClass: undefined, // (string) CSS class string that will be added to the cancel button
-			locale: $('html').attr('lang'), // (object) Allows you to provide localized strings for buttons and labels, customize the date format, and change the first day of week for the calendars. Check off 'locale (with example settings)' in the configuration generator to see how to customize these options.
-			singleDatePicker: false, // (boolean) Show only a single calendar to choose one date, instead of a range picker with two calendars; the start and end dates provided to your callback will be the same single date chosen
+			locale: undefined, // (object) Allows you to provide localized strings for buttons and labels, customize the date format, and change the first day of week for the calendars. Check off "locale (with example settings)" in the configuration generator to see how to customize these options.
+			singleDatePicker: undefined, // (boolean) Show only a single calendar to choose one date, instead of a range picker with two calendars; the start and end dates provided to your callback will be the same single date chosen
 			autoApply: undefined, // (boolean) Hide the apply and cancel buttons, and automatically apply a new date range as soon as two dates or a predefined range is selected
 			linkedCalendars: undefined, // (boolean) When enabled, the two calendars displayed will always be for two sequential months (i.e. January and February), and both will be advanced when clicking the left or right arrows above the calendars. When disabled, the two calendars can be individually advanced and display any month/year.
 			isInvalidDate: undefined, // (function) A function that is passed each date in the two calendars before they are displayed, and may return true or false to indicate whether that date should be available for selection or not.
 			isCustomDate: undefined, // (function) A function that is passed each date in the two calendars before they are displayed, and may return a string or array of CSS class names to apply to that date's calendar cell.
+			autoUpdateInput: true, // (boolean) Indicates whether the date range picker should automatically update the value of an <input> element it's attached to at initialization and when the selected dates change.
 			parentEl: undefined // (string) jQuery selector of the parent element that the date range picker will be added to, if not provided this will be 'body'
 
 		}, _this);
 
 		// Locale just a language string?
+		if (!_this.settings.locale) _this.settings.locale = $('html').attr('lang');
+		if (!_this.settings.locale) _this.settings.locale = 'en';
 		if (typeof _this.settings.locale === 'string') {
 
 			// Replace with locale
@@ -62,22 +66,45 @@ var Component = Chicken.component('ui-date-range-picker', false, function () {
 			}
 			_this.settings.locale = locale;
 		}
+		if (_this.settings.format) _this.settings.locale.format = _this.settings.format;
 
-		// Enable datepicker
+		///////////////////////
+		// Enable datepicker //
+		///////////////////////
+
 		$el.daterangepicker(_this.settings, function (startDate, endDate, label) {
 
 			// Apply to component again.
 			_this.set('startDate', startDate);
 			_this.set('endDate', endDate);
 		});
-		_this.dateRangePicker = $el.data('daterangepicker');
-		_this.dateRangePicker.updateInputText();
+		_this.picker = $el.data('daterangepicker');
+
+		///////////
+		// Icons //
+		///////////
+
+		_this.$element.on('showCalendar.daterangepicker', function () {
+
+			// Replace FA icons
+			var $el = _this.picker.container;
+			$el.find('i.fa').each(function (index, icon) {
+				icon.className = icon.className.replace(/^fa fa-([\w\-]+) glyphicon glyphicon-[\w\-]+$/, '$1 icon');
+				icon.className = icon.className.split(/-/).join(' ');
+			});
+		});
+
+		// Set intial value?
+		if (!_this.settings.startDate) {
+			_this.$element.val('');
+		}
 	});
 });
 
 Component.Locales = {
 
 	en: {
+		format: 'LL',
 		separator: ' - ',
 		applyLabel: 'Apply',
 		cancelLabel: 'Cancel',
@@ -88,21 +115,7 @@ Component.Locales = {
 		daysOfWeek: ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'],
 		monthNames: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
 		firstDay: 1
-	},
-
-	nl: {
-		separator: ' - ',
-		applyLabel: 'Apply',
-		cancelLabel: 'Cancel',
-		fromLabel: 'From',
-		toLabel: 'To',
-		customRangeLabel: 'Custom',
-		weekLabel: 'W',
-		daysOfWeek: ['Zo', 'Ma', 'Di', 'Wo', 'Do', 'Vr', 'Za'],
-		monthNames: ['januari', 'februari', 'maart', 'april', 'mei', 'juni', 'juli', 'augustus', 'september', 'october', 'november', 'december'],
-		firstDay: 1
 	}
-
 };
 
 var getOptions = function getOptions(defaultValues, component) {
@@ -135,7 +148,6 @@ Chicken.component('model-form', 'semantic-ui:chicken.model-form', function () {
 
 	this.when('ready', function () {
 
-		console.log(_this.$element);
 		_this.$element.form({
 
 			onSuccess: function onSuccess(event) {

@@ -1,9 +1,17 @@
-Chicken.component('ui-dropdown', false, function() {
+Chicken.component('ui-dropdown', 'semantic-ui:modules.dropdown', function() {
 
 	this.tagName = 'div';
 	this.cssClass = 'ui dropdown';
 	
 	this.on('added', ($el) => {
+
+		// Move validation data to hidden input
+		this.$hidden = this.$element.find('input[type="hidden"]');
+		let dv = this.$element.attr('data-validate');
+		if (dv) {
+			this.$element.removeAttr('data-validate');
+			this.$hidden.attr('data-validate', dv)
+		}
 
 		// Multi?
 		this.multiple = this.$element.is('.multiple');

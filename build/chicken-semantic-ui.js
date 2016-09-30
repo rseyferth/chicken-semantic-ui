@@ -2,6 +2,7 @@
 
 /** START TEMPLATES **/
 Chicken.Dom.View.TemplateCache.set('semantic-ui:chicken.model-form', '{{yield}}\n\n{{#if error}}\n\t<div class="ui negative icon message">\n\t\t<i class="warning icon"></i>\n\t\t<div class="content">\n\t\t\t{{error}}\t\t\t\n\t\t</div>\t\t\n\t</div>\n{{/if}}\n');
+Chicken.Dom.View.TemplateCache.set('semantic-ui:modules.dropdown', '<input type="hidden">\n{{yield}}');
 /** END TEMPLATES **/
 'use strict';
 
@@ -140,6 +141,19 @@ var getOptions = function getOptions(defaultValues, component) {
 };
 'use strict';
 
+Chicken.component('ui-button', false, function () {
+	var _this = this;
+
+	this.tagName = 'button';
+	this.cssClass = 'ui button';
+
+	this.dom.on('click', function () {
+
+		_this.sendAction();
+	});
+});
+'use strict';
+
 Chicken.component('model-form', 'semantic-ui:chicken.model-form', function () {
 	var _this = this;
 
@@ -185,19 +199,6 @@ Chicken.component('model-form', 'semantic-ui:chicken.model-form', function () {
 });
 'use strict';
 
-Chicken.component('ui-button', false, function () {
-	var _this = this;
-
-	this.tagName = 'button';
-	this.cssClass = 'ui button';
-
-	this.dom.on('click', function () {
-
-		_this.sendAction();
-	});
-});
-'use strict';
-
 Chicken.component('ui-accordion', false, function () {
 
 	this.tagName = 'div';
@@ -221,13 +222,21 @@ Chicken.component('ui-checkbox', false, function () {
 });
 'use strict';
 
-Chicken.component('ui-dropdown', false, function () {
+Chicken.component('ui-dropdown', 'semantic-ui:modules.dropdown', function () {
 	var _this = this;
 
 	this.tagName = 'div';
 	this.cssClass = 'ui dropdown';
 
 	this.on('added', function ($el) {
+
+		// Move validation data to hidden input
+		_this.$hidden = _this.$element.find('input[type="hidden"]');
+		var dv = _this.$element.attr('data-validate');
+		if (dv) {
+			_this.$element.removeAttr('data-validate');
+			_this.$hidden.attr('data-validate', dv);
+		}
 
 		// Multi?
 		_this.multiple = _this.$element.is('.multiple');

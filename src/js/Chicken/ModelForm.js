@@ -6,7 +6,16 @@ Chicken.component('model-form', 'semantic-ui:chicken.model-form', function() {
 
 	this.when('ready', () => {
 
+		// Get validation for model
+		let formKey = this.get('key');
+		if (!formKey) formKey = 'default';
+		let rules = this.get('model').getValidationRules(formKey);
 		this.$element.form({ 
+
+			on: 'blur',
+			inline: true,
+			fields: rules,
+			focusInvalid: true,
 
 			onSuccess: (event) => {
 
@@ -15,6 +24,11 @@ Chicken.component('model-form', 'semantic-ui:chicken.model-form', function() {
 
 			}
 
+		});
+
+		// Prevent default form submission
+		this.$element.on('submit', (e) => {
+			e.preventDefault();
 		});
 
 	});

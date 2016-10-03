@@ -1,8 +1,8 @@
 'use strict';
 
 /** START TEMPLATES **/
-Chicken.Dom.View.TemplateCache.set('semantic-ui:chicken.model-form', '{{yield}}\n\n{{#if error}}\n\t<div class="ui negative icon message">\n\t\t<i class="warning icon"></i>\n\t\t<div class="content">\n\t\t\t{{error}}\t\t\t\n\t\t</div>\t\t\n\t</div>\n{{/if}}\n');
 Chicken.Dom.View.TemplateCache.set('semantic-ui:modules.dropdown', '<input type="hidden">\n{{yield}}');
+Chicken.Dom.View.TemplateCache.set('semantic-ui:chicken.model-form', '{{yield}}\n\n{{#if error}}\n\t<div class="ui negative icon message">\n\t\t<i class="warning icon"></i>\n\t\t<div class="content">\n\t\t\t{{error}}\t\t\t\n\t\t</div>\t\t\n\t</div>\n{{/if}}\n');
 /** END TEMPLATES **/
 'use strict';
 
@@ -141,19 +141,6 @@ var getOptions = function getOptions(defaultValues, component) {
 };
 'use strict';
 
-Chicken.component('ui-button', false, function () {
-	var _this = this;
-
-	this.tagName = 'button';
-	this.cssClass = 'ui button';
-
-	this.dom.on('click', function () {
-
-		_this.sendAction();
-	});
-});
-'use strict';
-
 Chicken.component('model-form', 'semantic-ui:chicken.model-form', function () {
 	var _this = this;
 
@@ -162,7 +149,16 @@ Chicken.component('model-form', 'semantic-ui:chicken.model-form', function () {
 
 	this.when('ready', function () {
 
+		// Get validation for model
+		var formKey = _this.get('key');
+		if (!formKey) formKey = 'default';
+		var rules = _this.get('model').getValidationRules(formKey);
 		_this.$element.form({
+
+			on: 'blur',
+			inline: true,
+			fields: rules,
+			focusInvalid: true,
 
 			onSuccess: function onSuccess(event) {
 
@@ -170,6 +166,11 @@ Chicken.component('model-form', 'semantic-ui:chicken.model-form', function () {
 				_this.sendAction('save');
 			}
 
+		});
+
+		// Prevent default form submission
+		_this.$element.on('submit', function (e) {
+			e.preventDefault();
 		});
 	});
 
@@ -195,6 +196,19 @@ Chicken.component('model-form', 'semantic-ui:chicken.model-form', function () {
 			// No longer loading
 			_this.$element.removeClass('loading');
 		});
+	});
+});
+'use strict';
+
+Chicken.component('ui-button', false, function () {
+	var _this = this;
+
+	this.tagName = 'button';
+	this.cssClass = 'ui button';
+
+	this.dom.on('click', function () {
+
+		_this.sendAction();
 	});
 });
 'use strict';

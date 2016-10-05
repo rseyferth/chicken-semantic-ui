@@ -69,6 +69,10 @@ var Component = Chicken.component('ui-date-range-picker', false, function () {
 		}
 		if (_this.settings.format) _this.settings.locale.format = _this.settings.format;
 
+		// Parse dates
+		if (_this.settings.minDate) _this.settings.minDate = moment(_this.settings.minDate);
+		if (_this.settings.maxDate) _this.settings.maxDate = moment(_this.settings.maxDate);
+
 		///////////////////////
 		// Enable datepicker //
 		///////////////////////
@@ -216,6 +220,12 @@ Chicken.component('ui-button', false, function () {
 Chicken.component('ui-input', false, function () {
 
 	this.tagName = 'input';
+});
+'use strict';
+
+Chicken.component('ui-textarea', false, function () {
+
+	this.tagName = 'textarea';
 });
 'use strict';
 

@@ -61,6 +61,9 @@ let Component = Chicken.component('ui-date-range-picker', false, function() {
 		}
 		if (this.settings.format) this.settings.locale.format = this.settings.format;
 
+		// Parse dates
+		if (this.settings.minDate) this.settings.minDate = moment(this.settings.minDate);
+		if (this.settings.maxDate) this.settings.maxDate = moment(this.settings.maxDate);
 
 		///////////////////////
 		// Enable datepicker //

@@ -1,8 +1,8 @@
 'use strict';
 
 /** START TEMPLATES **/
-Chicken.Dom.View.TemplateCache.set('semantic-ui:modules.dropdown', '<input type="hidden">\n{{yield}}');
 Chicken.Dom.View.TemplateCache.set('semantic-ui:chicken.model-form', '{{yield}}\n\n{{#if error}}\n\t<div class="ui negative icon message">\n\t\t<i class="warning icon"></i>\n\t\t<div class="content">\n\t\t\t{{error}}\t\t\t\n\t\t</div>\t\t\n\t</div>\n{{/if}}\n');
+Chicken.Dom.View.TemplateCache.set('semantic-ui:modules.dropdown', '<input type="hidden">\n{{yield}}');
 /** END TEMPLATES **/
 'use strict';
 
@@ -210,6 +210,12 @@ Chicken.component('ui-button', false, function () {
 
 		_this.sendAction();
 	});
+});
+'use strict';
+
+Chicken.component('ui-input', false, function () {
+
+	this.tagName = 'input';
 });
 'use strict';
 

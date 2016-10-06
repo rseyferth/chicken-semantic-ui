@@ -143,6 +143,101 @@ var getOptions = function getOptions(defaultValues, component) {
 	});
 	return values;
 };
+"use strict";
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var SemanticApiRequest = function () {
+	function SemanticApiRequest(api, uri) {
+		_classCallCheck(this, SemanticApiRequest);
+
+		this.api = api;
+		this.uri = uri;
+
+		this.auth = null;
+	}
+
+	_createClass(SemanticApiRequest, [{
+		key: "toSemantic",
+		value: function toSemantic() {
+			var _this = this;
+
+			var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+
+
+			// Basics
+			var apiOptions = {
+				url: this.api.makeUrl(this.uri)
+			};
+
+			// Check auth
+			var auth = this.auth ? this.auth : this.api.getAuth();
+			if (auth) {
+				var ajaxOptions = auth.getAjaxOptions();
+				if (ajaxOptions.beforeSend) {
+					apiOptions.beforeXHR = ajaxOptions.beforeSend;
+				}
+			}
+
+			// Parse response
+			apiOptions.onResponse = function (response) {
+
+				return _this._convertApiResponse(response);
+			};
+
+			// Combine
+			$.extend(apiOptions, options);
+
+			// Done
+			return apiOptions;
+		}
+	}, {
+		key: "convertResponse",
+		value: function convertResponse(callback) {
+			this.convertResponseCallback = callback;
+			return this;
+		}
+	}, {
+		key: "_convertApiResponse",
+		value: function _convertApiResponse(response) {
+
+			// Parse it
+			var data = this.api.deserialize(response);
+
+			// Map to semantic format
+			var result = {
+				success: true
+			};
+
+			// Conversion defined?
+			if (this.convertResponseCallback) {
+
+				// Convert it
+				result.results = this.convertResponseCallback.apply(this, [data]);
+			} else {
+
+				// Collection or model?
+				if (data instanceof Chicken.Data.Model) {
+
+					// To object
+					result.results = data.toObject();
+				} else {
+
+					// To array
+					result.results = data.toArray();
+				}
+			}
+
+			return result;
+		}
+	}]);
+
+	return SemanticApiRequest;
+}();
+
+;
 'use strict';
 
 Chicken.component('model-form', 'semantic-ui:chicken.model-form', function () {
@@ -224,8 +319,36 @@ Chicken.component('ui-input', false, function () {
 'use strict';
 
 Chicken.component('ui-textarea', false, function () {
+	var _this = this;
 
 	this.tagName = 'textarea';
+
+	this.on('added', function () {
+
+		////////////////////////////////
+		// Whenever the value changes //
+		////////////////////////////////
+
+		_this._updating = false;
+		_this.$element.on('change blur', function () {
+
+			// Not updating...
+			if (_this._updating) return;
+
+			// Set it
+			_this.set('value', _this.$element.val());
+		});
+
+		var applyValue = function applyValue() {
+
+			// Get value
+			_this._updating = true; // To prevent feedback loop
+			_this.$element.val(_this.get('value'));
+			_this._updating = false;
+		};
+		_this.observe('value', applyValue);
+		applyValue();
+	});
 });
 'use strict';
 
@@ -260,6 +383,9 @@ Chicken.component('ui-dropdown', 'semantic-ui:modules.dropdown', function () {
 
 	this.on('added', function ($el) {
 
+		// Create options
+		var options = {};
+
 		// Move validation data to hidden input
 		_this.$hidden = _this.$element.find('input[type="hidden"]');
 		var dv = _this.$element.attr('data-validate');
@@ -270,36 +396,91 @@ Chicken.component('ui-dropdown', 'semantic-ui:modules.dropdown', function () {
 
 		// Multi?
 		_this.multiple = _this.$element.is('.multiple');
+
+		// Prevent observer-loops
 		_this._updating = false;
 
-		$el.dropdown({
-			onChange: function onChange(value) {
+		////////////
+		// Events //
+		////////////
 
-				if (_this._updating) return;
+		options.onChange = function (value) {
 
-				if (!_this.attributes.valueIsArray) {
+			if (_this._updating) return;
 
-					// Apply to value
-					_this.set('value', value);
-				}
-			},
-			onAdd: function onAdd(value) {
+			if (!_this.attributes.valueIsArray) {
 
-				if (_this._updating) return;
-				if (_this.attributes.valueIsArray) {
-					_this.get('value').add(value);
-				}
-			},
-			onRemove: function onRemove(value) {
-
-				if (_this._updating) return;
-				if (_this.attributes.valueIsArray) {
-					_this.get('value').delete(value);
-				}
+				// Apply to value
+				_this.set('value', value);
 			}
-		});
+		};
+		options.onAdd = function (value) {
 
-		// Whenever the value changes
+			if (_this._updating) return;
+			if (_this.attributes.valueIsArray) {
+				_this.get('value').add(value);
+			}
+		};
+		options.onRemove = function (value) {
+
+			if (_this._updating) return;
+			if (_this.attributes.valueIsArray) {
+				_this.get('value').delete(value);
+			}
+		};
+
+		////////////////////
+		// Remote source? //
+		////////////////////
+
+		if (_this.attributes.source) {
+			(function () {
+
+				// Get api
+				var apiKey = _this.attributes.apiKey ? _this.attributes.apiKey : null;
+				var api = Chicken.app.api(apiKey);
+
+				// Make request
+				var request = new SemanticApiRequest(api, _this.attributes.source);
+
+				// Check key, name, and value attribute
+				var nameAttribute = _this.attributes.nameAttribute ? _this.attributes.nameAttribute : 'name';
+				var valueAttribute = _this.attributes.valueAttribute ? _this.attributes.valueAttribute : 'value';
+				var textAttribute = _this.attributes.textAttribute ? _this.attributes.textAttribute : 'text';
+				if (_this.attributes.nameAttribute && !_this.attributes.textAttribute) {
+					textAttribute = nameAttribute;
+				}
+
+				// Apply
+				options.apiSettings = request.convertResponse(function (response) {
+
+					return response.map(function (model) {
+
+						return {
+							name: model.get(nameAttribute),
+							value: model.get(valueAttribute),
+							text: model.get(textAttribute)
+						};
+					});
+				}).toSemantic({
+					cache: false
+				});
+			})();
+		}
+
+		// Min-chars search
+		options.minCharacters = _this.getAttribute('minCharacters', 1);
+
+		///////////////
+		// Create it //
+		///////////////
+
+		$el.dropdown(options);
+
+		////////////////////////////////
+		// Whenever the value changes //
+		////////////////////////////////
+
 		var applyValue = function applyValue() {
 
 			// Get value

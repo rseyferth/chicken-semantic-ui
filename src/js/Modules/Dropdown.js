@@ -6,7 +6,7 @@ Chicken.component('ui-dropdown', 'semantic-ui:modules.dropdown', function() {
 	this.on('added', ($el) => {
 
 		// Create options
-		let options = {};
+		let options = this.attributes;
 
 		// Move validation data to hidden input
 		this.$hidden = this.$element.find('input[type="hidden"]');
@@ -14,6 +14,10 @@ Chicken.component('ui-dropdown', 'semantic-ui:modules.dropdown', function() {
 		if (dv) {
 			this.$element.removeAttr('data-validate');
 			this.$hidden.attr('data-validate', dv)
+		}
+		let name = this.$element.attr('name');
+		if (name) {
+			this.$hidden.attr('name', name);
 		}
 
 		// Multi?
@@ -91,7 +95,7 @@ Chicken.component('ui-dropdown', 'semantic-ui:modules.dropdown', function() {
 				});
 
 			}).toSemantic({
-				cache: false
+				
 			});
 
 

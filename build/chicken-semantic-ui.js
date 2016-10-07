@@ -143,6 +143,65 @@ var getOptions = function getOptions(defaultValues, component) {
 	});
 	return values;
 };
+'use strict';
+
+Chicken.component('model-form', 'semantic-ui:chicken.model-form', function () {
+	var _this = this;
+
+	this.tagName = 'form';
+	this.cssClass = 'ui form';
+
+	this.when('ready', function () {
+
+		// Get validation for model
+		var formKey = _this.get('key');
+		if (!formKey) formKey = 'default';
+		var rules = _this.get('model').getValidationRules(formKey);
+		_this.$element.form({
+
+			on: 'blur',
+			inline: true,
+			fields: rules,
+			focusInvalid: true,
+
+			onSuccess: function onSuccess(event) {
+
+				event.preventDefault();
+				_this.sendAction('save');
+			}
+
+		});
+
+		// Prevent default form submission
+		_this.$element.on('submit', function (e) {
+			e.preventDefault();
+		});
+	});
+
+	this.action('save', function () {
+
+		// Set to busy
+		_this.set('error', false);
+		_this.$element.addClass('loading');
+
+		// Go and save it
+		_this.get('model').save({
+
+			uri: _this.get('uri')
+
+		}).then(function (result) {
+
+			_this.$element.removeClass('loading');
+		}, function (error) {
+
+			// Show the error
+			_this.set('error', error.getMessage());
+
+			// No longer loading
+			_this.$element.removeClass('loading');
+		});
+	});
+});
 "use strict";
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -164,7 +223,7 @@ var SemanticApiRequest = function () {
 		value: function toSemantic() {
 			var _this = this;
 
-			var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+			var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
 
 
 			// Basics
@@ -238,65 +297,6 @@ var SemanticApiRequest = function () {
 }();
 
 ;
-'use strict';
-
-Chicken.component('model-form', 'semantic-ui:chicken.model-form', function () {
-	var _this = this;
-
-	this.tagName = 'form';
-	this.cssClass = 'ui form';
-
-	this.when('ready', function () {
-
-		// Get validation for model
-		var formKey = _this.get('key');
-		if (!formKey) formKey = 'default';
-		var rules = _this.get('model').getValidationRules(formKey);
-		_this.$element.form({
-
-			on: 'blur',
-			inline: true,
-			fields: rules,
-			focusInvalid: true,
-
-			onSuccess: function onSuccess(event) {
-
-				event.preventDefault();
-				_this.sendAction('save');
-			}
-
-		});
-
-		// Prevent default form submission
-		_this.$element.on('submit', function (e) {
-			e.preventDefault();
-		});
-	});
-
-	this.action('save', function () {
-
-		// Set to busy
-		_this.set('error', false);
-		_this.$element.addClass('loading');
-
-		// Go and save it
-		_this.get('model').save({
-
-			uri: _this.get('uri')
-
-		}).then(function (result) {
-
-			_this.$element.removeClass('loading');
-		}, function (error) {
-
-			// Show the error
-			_this.set('error', error.getMessage());
-
-			// No longer loading
-			_this.$element.removeClass('loading');
-		});
-	});
-});
 'use strict';
 
 Chicken.component('ui-button', false, function () {
@@ -384,7 +384,7 @@ Chicken.component('ui-dropdown', 'semantic-ui:modules.dropdown', function () {
 	this.on('added', function ($el) {
 
 		// Create options
-		var options = {};
+		var options = _this.attributes;
 
 		// Move validation data to hidden input
 		_this.$hidden = _this.$element.find('input[type="hidden"]');
@@ -392,6 +392,10 @@ Chicken.component('ui-dropdown', 'semantic-ui:modules.dropdown', function () {
 		if (dv) {
 			_this.$element.removeAttr('data-validate');
 			_this.$hidden.attr('data-validate', dv);
+		}
+		var name = _this.$element.attr('name');
+		if (name) {
+			_this.$hidden.attr('name', name);
 		}
 
 		// Multi?
@@ -462,9 +466,7 @@ Chicken.component('ui-dropdown', 'semantic-ui:modules.dropdown', function () {
 							text: model.get(textAttribute)
 						};
 					});
-				}).toSemantic({
-					cache: false
-				});
+				}).toSemantic({});
 			})();
 		}
 

@@ -6,7 +6,11 @@ Chicken.component('ui-dropdown', 'semantic-ui:modules.dropdown', function() {
 	this.on('added', ($el) => {
 
 		// Create options
-		let options = this.attributes;
+		let options = $.extend({
+
+			useModelAsValue: true
+
+		}, this.attributes);
 
 		// Move validation data to hidden input
 		this.$hidden = this.$element.find('input[type="hidden"]');
@@ -37,6 +41,11 @@ Chicken.component('ui-dropdown', 'semantic-ui:modules.dropdown', function() {
 
 			if (!this.attributes.valueIsArray) {
 				
+				// Use model?
+				if (options.useModelAsValue) {
+					value = this.modelMap[value];
+				}
+
 				// Apply to value
 				this.set('value', value);
 
@@ -60,10 +69,20 @@ Chicken.component('ui-dropdown', 'semantic-ui:modules.dropdown', function() {
 
 		};
 
+		////////////////
+		// Atrributes //
+		////////////////
+
+		let nameAttribute = options.nameAttribute || 'name';
+		let valueAttribute = options.valueAttribute || 'value';
+		let textAttribute = options.textAttribute || 'text';
+		
+
 		////////////////////
 		// Remote source? //
 		////////////////////
 
+		this.modelMap = {};
 		if (this.attributes.source) {
 
 			// Get api
@@ -74,18 +93,21 @@ Chicken.component('ui-dropdown', 'semantic-ui:modules.dropdown', function() {
 			let request = new SemanticApiRequest(api, this.attributes.source);
 
 			// Check key, name, and value attribute
-			let nameAttribute = this.attributes.nameAttribute ? this.attributes.nameAttribute : 'name';
-			let valueAttribute = this.attributes.valueAttribute ? this.attributes.valueAttribute : 'value';
-			let textAttribute = this.attributes.textAttribute ? this.attributes.textAttribute : 'text';
 			if (this.attributes.nameAttribute && !this.attributes.textAttribute) {
 				textAttribute = nameAttribute;
 			}
 
-			// Apply
+			// Convert the response from the API
 			options.apiSettings = request.convertResponse((response) => {
 
 				return response.map((model) => {
 				
+					// Store the model itself
+					if (options.useModelAsValue) {
+						this.modelMap[model.get(valueAttribute)] = model;
+					}
+
+					// Convert to semantic format
 					return {
 						name: model.get(nameAttribute),
 						value: model.get(valueAttribute),
@@ -122,6 +144,11 @@ Chicken.component('ui-dropdown', 'semantic-ui:modules.dropdown', function() {
 			let value = this.get('value');
 			if (this.attributes.valueIsArray && value && value.toArray) {
 				value = value.toArray();
+			}
+
+			// Is the value a model?
+			if (value instanceof Chicken.Data.Model) {
+				value = value.get(valueAttribute);
 			}
 
 			// Apply

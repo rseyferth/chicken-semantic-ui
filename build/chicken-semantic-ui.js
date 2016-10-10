@@ -1,8 +1,8 @@
 'use strict';
 
 /** START TEMPLATES **/
-Chicken.Dom.View.TemplateCache.set('semantic-ui:modules.dropdown', '<input type="hidden">\n{{yield}}');
 Chicken.Dom.View.TemplateCache.set('semantic-ui:chicken.model-form', '{{yield}}\n\n{{#if error}}\n\t<div class="ui negative icon message">\n\t\t<i class="warning icon"></i>\n\t\t<div class="content">\n\t\t\t{{error}}\t\t\t\n\t\t</div>\t\t\n\t</div>\n{{/if}}\n');
+Chicken.Dom.View.TemplateCache.set('semantic-ui:modules.dropdown', '<input type="hidden">\n{{yield}}');
 /** END TEMPLATES **/
 'use strict';
 
@@ -143,6 +143,65 @@ var getOptions = function getOptions(defaultValues, component) {
 	});
 	return values;
 };
+'use strict';
+
+Chicken.component('model-form', 'semantic-ui:chicken.model-form', function () {
+	var _this = this;
+
+	this.tagName = 'form';
+	this.cssClass = 'ui form';
+
+	this.when('ready', function () {
+
+		// Get validation for model
+		var formKey = _this.get('key');
+		if (!formKey) formKey = 'default';
+		var rules = _this.get('model').getValidationRules(formKey);
+		_this.$element.form({
+
+			on: 'blur',
+			inline: true,
+			fields: rules,
+			focusInvalid: true,
+
+			onSuccess: function onSuccess(event) {
+
+				event.preventDefault();
+				_this.sendAction('save');
+			}
+
+		});
+
+		// Prevent default form submission
+		_this.$element.on('submit', function (e) {
+			e.preventDefault();
+		});
+	});
+
+	this.action('save', function () {
+
+		// Set to busy
+		_this.set('error', false);
+		_this.$element.addClass('loading');
+
+		// Go and save it
+		_this.get('model').save({
+
+			uri: _this.get('uri')
+
+		}).then(function (result) {
+
+			_this.$element.removeClass('loading');
+		}, function (error) {
+
+			// Show the error
+			_this.set('error', error.getMessage());
+
+			// No longer loading
+			_this.$element.removeClass('loading');
+		});
+	});
+});
 "use strict";
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -240,65 +299,6 @@ var SemanticApiRequest = function () {
 ;
 'use strict';
 
-Chicken.component('model-form', 'semantic-ui:chicken.model-form', function () {
-	var _this = this;
-
-	this.tagName = 'form';
-	this.cssClass = 'ui form';
-
-	this.when('ready', function () {
-
-		// Get validation for model
-		var formKey = _this.get('key');
-		if (!formKey) formKey = 'default';
-		var rules = _this.get('model').getValidationRules(formKey);
-		_this.$element.form({
-
-			on: 'blur',
-			inline: true,
-			fields: rules,
-			focusInvalid: true,
-
-			onSuccess: function onSuccess(event) {
-
-				event.preventDefault();
-				_this.sendAction('save');
-			}
-
-		});
-
-		// Prevent default form submission
-		_this.$element.on('submit', function (e) {
-			e.preventDefault();
-		});
-	});
-
-	this.action('save', function () {
-
-		// Set to busy
-		_this.set('error', false);
-		_this.$element.addClass('loading');
-
-		// Go and save it
-		_this.get('model').save({
-
-			uri: _this.get('uri')
-
-		}).then(function (result) {
-
-			_this.$element.removeClass('loading');
-		}, function (error) {
-
-			// Show the error
-			_this.set('error', error.getMessage());
-
-			// No longer loading
-			_this.$element.removeClass('loading');
-		});
-	});
-});
-'use strict';
-
 Chicken.component('ui-button', false, function () {
 	var _this = this;
 
@@ -386,7 +386,7 @@ Chicken.component('ui-dropdown', 'semantic-ui:modules.dropdown', function () {
 		// Create options
 		var options = $.extend({
 
-			useModelAsValue: true
+			useModelAsValue: false
 
 		}, _this.attributes);
 
@@ -511,16 +511,23 @@ Chicken.component('ui-dropdown', 'semantic-ui:modules.dropdown', function () {
 				value = value.toArray();
 			}
 
-			// Is the value a model?
-			if (value instanceof Chicken.Data.Model) {
-				value = value.get(valueAttribute);
+			// Is it a model not in the map?
+			if (value instanceof Chicken.Data.Model && !_this.modelMap[value.get(valueAttribute)]) {
+
+				// Get info from the model
+				$el.dropdown('set text', value.get(textAttribute));
+				$el.dropdown('set value', value.get(valueAttribute));
+			} else {
+
+				// Apply
+				$el.dropdown('set exactly', value);
 			}
 
-			// Apply
-			$el.dropdown('set exactly', value);
 			_this._updating = false;
 		};
 		_this.observe('value', applyValue);
+
+		// Initial value?
 		applyValue();
 	});
 });

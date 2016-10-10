@@ -8,7 +8,7 @@ Chicken.component('ui-dropdown', 'semantic-ui:modules.dropdown', function() {
 		// Create options
 		let options = $.extend({
 
-			useModelAsValue: true
+			useModelAsValue: false
 
 		}, this.attributes);
 
@@ -133,10 +133,13 @@ Chicken.component('ui-dropdown', 'semantic-ui:modules.dropdown', function() {
 		$el.dropdown(options);
 		
 		
+
+
+
 		////////////////////////////////
 		// Whenever the value changes //
 		////////////////////////////////
-		
+
 		let applyValue = () => {
 			
 			// Get value
@@ -146,17 +149,27 @@ Chicken.component('ui-dropdown', 'semantic-ui:modules.dropdown', function() {
 				value = value.toArray();
 			}
 
-			// Is the value a model?
-			if (value instanceof Chicken.Data.Model) {
-				value = value.get(valueAttribute);
+			// Is it a model not in the map?
+			if (value instanceof Chicken.Data.Model && !this.modelMap[value.get(valueAttribute)]) {
+
+				// Get info from the model
+				$el.dropdown('set text', value.get(textAttribute));
+				$el.dropdown('set value', value.get(valueAttribute));				
+
+			} else {
+
+				// Apply
+				$el.dropdown('set exactly', value);
+
 			}
 
-			// Apply
-			$el.dropdown('set exactly', value);
 			this._updating = false;
-			
+
 		};
 		this.observe('value', applyValue);
+		
+
+		// Initial value?
 		applyValue();
 
 	});

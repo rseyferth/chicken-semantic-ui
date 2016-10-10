@@ -118,6 +118,8 @@ Chicken.component('ui-dropdown', 'semantic-ui:modules.dropdown', function() {
 
 			}).toSemantic({
 				
+				cache: options.cache || false
+
 			});
 
 
@@ -150,7 +152,7 @@ Chicken.component('ui-dropdown', 'semantic-ui:modules.dropdown', function() {
 			}
 
 			// Is it a model not in the map?
-			if (value instanceof Chicken.Data.Model && !this.modelMap[value.get(valueAttribute)]) {
+			if (value instanceof Chicken.Data.Model) {
 
 				// Get info from the model
 				$el.dropdown('set text', value.get(textAttribute));

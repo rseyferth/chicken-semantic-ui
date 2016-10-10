@@ -489,7 +489,11 @@ Chicken.component('ui-dropdown', 'semantic-ui:modules.dropdown', function () {
 						text: model.get(textAttribute)
 					};
 				});
-			}).toSemantic({});
+			}).toSemantic({
+
+				cache: options.cache || false
+
+			});
 		}
 
 		// Min-chars search
@@ -515,7 +519,7 @@ Chicken.component('ui-dropdown', 'semantic-ui:modules.dropdown', function () {
 			}
 
 			// Is it a model not in the map?
-			if (value instanceof Chicken.Data.Model && !_this.modelMap[value.get(valueAttribute)]) {
+			if (value instanceof Chicken.Data.Model) {
 
 				// Get info from the model
 				$el.dropdown('set text', value.get(textAttribute));

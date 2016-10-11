@@ -20,7 +20,8 @@
   "dependencies": {
     "chickenjs": "0.*",
     "semantic": "2.2.4",
-    "bootstrap-daterangepicker": "^2.1.24"
+    "bootstrap-daterangepicker": "^2.1.24",
+    "dropzone": "^4.3.0"
   },
   "version": "0.1.13",
   "resolutions": {

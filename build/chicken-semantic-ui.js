@@ -1,8 +1,9 @@
 'use strict';
 
 /** START TEMPLATES **/
-Chicken.Dom.View.TemplateCache.set('semantic-ui:chicken.model-form', '{{yield}}\n\n{{#if error}}\n\t<div class="ui negative icon message">\n\t\t<i class="warning icon"></i>\n\t\t<div class="content">\n\t\t\t{{error}}\t\t\t\n\t\t</div>\t\t\n\t</div>\n{{/if}}\n');
+Chicken.Dom.View.TemplateCache.set('semantic-ui:addons.dropzone', '\n{{#if files}}\n\n\t<div class="ui cards">\n\t{{#each files as |file|}}\n\t\t<div class="card">\n\t\t\t<div class="content">\n\t\t\t\t<div class="header">{{file.name}}</div>\n\t\t\t\t<div class="meta">{{fileSize file.size}}</div>\n\t\t\t\t<div class="description"></div>\n\t\t\t\t<ui-progress value={{file.progress}} error={{file.errorMessage}}>\n\t\t\t\t\t<div class="bar">\n\t\t\t\t\t\t<div class="progress"></div>\n\t\t\t\t\t</div>\n\t\t\t\t\t{{#if file.errorMessage}}\n\t\t\t\t\t\t<div class="label">{{file.errorMessage}}</div>\n\t\t\t\t\t{{/if}}\n\t\t\t\t</ui-progress>\n\t\t\t</div>\n\t\t\t{{#if file.complete}}\n\t\t\t<div class="ui bottom attached button" {{action "deleteFile" file}}>\n\t\t\t\t<i class="trash icon"></i>\n\t\t\t\t{{options.dictRemoveFile}}\n\t\t\t</div>\n\t\t\t{{/if}}\n\t\t</div>\n\t{{/each}}\n\t</div>\n\n{{else}}\n\t\n\t<i class="upload icon dz-message"></i>\n\n{{/if}}');
 Chicken.Dom.View.TemplateCache.set('semantic-ui:modules.dropdown', '<input type="hidden">\n{{yield}}');
+Chicken.Dom.View.TemplateCache.set('semantic-ui:chicken.model-form', '{{yield}}\n\n{{#if error}}\n\t<div class="ui negative icon message">\n\t\t<i class="warning icon"></i>\n\t\t<div class="content">\n\t\t\t{{error}}\t\t\t\n\t\t</div>\t\t\n\t</div>\n{{/if}}\n');
 /** END TEMPLATES **/
 'use strict';
 
@@ -143,6 +144,109 @@ var getOptions = function getOptions(defaultValues, component) {
 	});
 	return values;
 };
+'use strict';
+
+/**
+ * This component uses the following package:
+ *	http://www.dropzonejs.com/
+ */
+
+var Component = Chicken.component('ui-dropzone', 'semantic-ui:addons.dropzone', function () {
+	var _this = this;
+
+	this.cssClass = 'ui selection dropdown dropzone';
+
+	// Stats
+	this.set('files', [], true);
+
+	//////////////////////
+	// Dropzone options //
+	//////////////////////
+
+	var options = $.extend({
+
+		addedfile: function addedfile(file) {
+
+			// Create a 'model'
+			var model = Chicken.observable({
+				file: file,
+				name: file.name,
+				size: file.size,
+				complete: false,
+				canceled: false,
+				success: false,
+				errorMessage: false,
+				uploading: true,
+				progress: 0,
+				bytesSent: 0
+			});
+			file.model = model;
+			_this.get('files').add(model);
+		},
+
+		thumbnail: function thumbnail(file, dataUrl) {
+			console.log('thumbnail', file, dataUrl);
+		},
+
+		uploadprogress: function uploadprogress(file, progress, bytesSent) {
+
+			// Update 
+			file.model.set('progress', progress);
+			file.model.set('bytesSent', bytesSent);
+		},
+
+		error: function error(file, _error) {
+
+			file.model.set('errorMessage', typeof _error === 'string' ? _error : _error.message);
+			file.model.set('success', false);
+			file.model.set('complete', true);
+		},
+
+		sending: function sending(file, xhr, formData) {
+
+			// Get ajax options from API
+			var api = Chicken.app.api(_this.get('api'));
+			if (api) {
+				var auth = api.getAuth();
+				if (auth) {
+					var beforeSend = auth.getAjaxOptions().beforeSend;
+					if (beforeSend) {
+						beforeSend(xhr);
+					}
+				}
+			}
+		},
+
+		reset: function reset() {}
+
+	}, Component.Config, this.attributes);
+
+	// Make available in template
+	this.set('options', options, true);
+
+	// When rendered
+	this.when('ready', function () {
+
+		////////////////////////
+		// Make the dropzone. //
+		////////////////////////
+
+		_this.$element.dropzone(options);
+	});
+
+	/////////////
+	// Actions //
+	/////////////
+
+	this.action('deleteFile', function (file) {
+		_this.get('files').delete(file);
+	});
+});
+
+var ComponentCallbacks = ['accept', 'renameFilename', 'fallback', 'resize', 'init'];
+
+// Global configuration
+Component.Config = {};
 "use strict";
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -546,11 +650,20 @@ Chicken.component('ui-progress', false, function () {
 	this.tagName = 'div';
 	this.cssClass = 'ui progress';
 
+	this.observe('error', function () {
+
+		// Toggle class
+		_this.$element.toggleClass('error', _this.get('error').length > 0);
+	});
+
 	this.on('added', function ($el) {
 
 		$el.progress({
 			value: _this.get('value')
 		});
+
+		// Toggle class
+		_this.$element.toggleClass('error', _this.get('error').length > 0);
 	});
 
 	this.observe('value', function () {

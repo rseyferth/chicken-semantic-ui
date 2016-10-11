@@ -66,7 +66,7 @@ gulp.task('templates', () => {
 gulp.task('watch', () => {
 
 	gulp.watch(['src/js/**/*.js', 'templates/**/*.hbs'], ['templates', 'scripts']);
-	gulp.watch(['src/sass/*.scss'], ['styles']);
+	gulp.watch(['src/sass/**/*.scss'], ['styles']);
 	
 	
 });

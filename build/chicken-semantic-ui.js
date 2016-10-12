@@ -1,7 +1,7 @@
 'use strict';
 
 /** START TEMPLATES **/
-Chicken.Dom.View.TemplateCache.set('semantic-ui:addons.dropzone', '\n{{#if files}}\n\n\t<div class="ui cards">\n\t{{#each files as |file|}}\n\t\t<div class="card">\n\t\t\t<div class="content">\n\t\t\t\t<div class="header">{{file.name}}</div>\n\t\t\t\t<div class="meta">{{fileSize file.size}}</div>\n\t\t\t\t<div class="description"></div>\n\t\t\t\t<ui-progress value={{file.progress}} error={{file.errorMessage}}>\n\t\t\t\t\t<div class="bar">\n\t\t\t\t\t\t<div class="progress"></div>\n\t\t\t\t\t</div>\n\t\t\t\t\t{{#if file.errorMessage}}\n\t\t\t\t\t\t<div class="label">{{file.errorMessage}}</div>\n\t\t\t\t\t{{/if}}\n\t\t\t\t</ui-progress>\n\t\t\t</div>\n\t\t\t{{#if file.complete}}\n\t\t\t<div class="ui bottom attached button" {{action "deleteFile" file}}>\n\t\t\t\t<i class="trash icon"></i>\n\t\t\t\t{{options.dictRemoveFile}}\n\t\t\t</div>\n\t\t\t{{/if}}\n\t\t</div>\n\t{{/each}}\n\t</div>\n\n{{else}}\n\t\n\t<i class="upload icon dz-message"></i>\n\n{{/if}}');
+Chicken.Dom.View.TemplateCache.set('semantic-ui:addons.dropzone', '\n{{#if files}}\n\n\t<div class="ui cards">\n\t{{#each files as |file|}}\n\t\t<div class="card">\n\t\t\t{{#if file.thumbnailBase64}}\n\t\t\t\t<div class="image">\n\t\t\t\t\t<img src={{file.thumbnailBase64}}>\n\t\t\t\t</div>\n\t\t\t{{/if}}\n\t\t\t<div class="content">\n\t\t\t\t<div class="header">{{file.name}}</div>\n\t\t\t\t<div class="meta">{{fileSize file.size}}</div>\n\t\t\t\t\n\t\t\t\t<ui-progress value={{file.progress}} error={{file.errorMessage}}>\n\t\t\t\t\t<div class="bar">\n\t\t\t\t\t\t<div class="progress"></div>\n\t\t\t\t\t</div>\n\t\t\t\t</ui-progress>\n\t\t\t\t{{#if file.errorMessage}}\n\t\t\t\t\t<div class="ui error message">\n\t\t\t\t\t\t{{file.errorMessage}}\t\t\t\t\t\t\n\t\t\t\t\t</div>\n\t\t\t\t{{/if}}\n\t\t\t</div>\n\t\t\t{{#if file.complete}}\n\t\t\t<div class="ui bottom attached button" {{action "deleteFile" file}}>\n\t\t\t\t<i class="trash icon"></i>\n\t\t\t\t{{options.dictRemoveFile}}\n\t\t\t</div>\n\t\t\t{{/if}}\n\t\t</div>\n\t{{/each}}\n\t</div>\n\n{{else}}\n\t\n\t<i class="upload icon dz-message"></i>\n\n{{/if}}');
 Chicken.Dom.View.TemplateCache.set('semantic-ui:modules.dropdown', '<input type="hidden">\n{{yield}}');
 Chicken.Dom.View.TemplateCache.set('semantic-ui:chicken.model-form', '{{yield}}\n\n{{#if error}}\n\t<div class="ui negative icon message">\n\t\t<i class="warning icon"></i>\n\t\t<div class="content">\n\t\t\t{{error}}\t\t\t\n\t\t</div>\t\t\n\t</div>\n{{/if}}\n');
 /** END TEMPLATES **/
@@ -178,14 +178,18 @@ var Component = Chicken.component('ui-dropzone', 'semantic-ui:addons.dropzone', 
 				errorMessage: false,
 				uploading: true,
 				progress: 0,
-				bytesSent: 0
+				bytesSent: 0,
+				thumbnailBase64: false,
+				model: null
 			});
 			file.model = model;
 			_this.get('files').add(model);
 		},
 
 		thumbnail: function thumbnail(file, dataUrl) {
-			console.log('thumbnail', file, dataUrl);
+
+			// Store on file
+			file.model.set('thumbnailBase64', dataUrl);
 		},
 
 		uploadprogress: function uploadprogress(file, progress, bytesSent) {
@@ -200,6 +204,27 @@ var Component = Chicken.component('ui-dropzone', 'semantic-ui:addons.dropzone', 
 			file.model.set('errorMessage', typeof _error === 'string' ? _error : _error.message);
 			file.model.set('success', false);
 			file.model.set('complete', true);
+		},
+
+		success: function success(file, response) {
+
+			// Deserialize response
+			try {
+				response = Chicken.app.api(_this.get('api')).deserialize(response);
+			} catch (error) {
+				file.model.set('errorMessage', typeof error === 'string' ? error : error.message);
+				file.model.set('success', false);
+				file.model.set('complete', true);
+				return;
+			}
+
+			// Apply
+			file.model.set('success', true);
+			file.model.set('complete', true);
+			file.model.set('model', response);
+
+			// Update
+			updateValue();
 		},
 
 		sending: function sending(file, xhr, formData) {
@@ -221,6 +246,44 @@ var Component = Chicken.component('ui-dropzone', 'semantic-ui:addons.dropzone', 
 
 	}, Component.Config, this.attributes);
 
+	// Multple / single
+	if (options.maxFiles === undefined) {
+		options.maxFiles = this.attributes.multiple ? null : 1;
+	}
+
+	// Start with a list of files
+	var value = this.get('value');
+
+	var updateValue = function updateValue() {
+
+		// Single?
+		if (options.multiple) {
+			(function () {
+
+				// Set values
+				var values = [];
+				_this.get('files').each(function (file) {
+					if (file.get('model')) {
+						values.push(file.get('model').get(options.modelValueAttribute));
+					}
+				});
+				_this.set('value', values, true);
+			})();
+		} else {
+			// Get first
+			if (_this.get('files').length === 0) {
+				_this.set('value', null);
+			} else {
+				var file = _this.get('files.0');
+				if (file.get('model')) {
+					_this.set('value', file.get('model').get(options.modelValueAttribute));
+				} else {
+					_this.set('value', null);
+				}
+			}
+		}
+	};
+
 	// Make available in template
 	this.set('options', options, true);
 
@@ -231,7 +294,7 @@ var Component = Chicken.component('ui-dropzone', 'semantic-ui:addons.dropzone', 
 		// Make the dropzone. //
 		////////////////////////
 
-		_this.$element.dropzone(options);
+		_this.dropzone = new Dropzone(_this.$element[0], options);
 	});
 
 	/////////////
@@ -239,14 +302,26 @@ var Component = Chicken.component('ui-dropzone', 'semantic-ui:addons.dropzone', 
 	/////////////
 
 	this.action('deleteFile', function (file) {
+
+		// Remove the file
 		_this.get('files').delete(file);
+		_this.dropzone.removeFile(file.get('file'));
+
+		// Update
+		updateValue();
 	});
 });
 
 var ComponentCallbacks = ['accept', 'renameFilename', 'fallback', 'resize', 'init'];
 
 // Global configuration
-Component.Config = {};
+Component.Config = {
+
+	modelValueAttribute: 'path',
+	thumbnailWidth: 290,
+	thumbnailHeight: 290
+
+};
 "use strict";
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();

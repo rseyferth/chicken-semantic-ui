@@ -23,7 +23,7 @@
     "bootstrap-daterangepicker": "^2.1.24",
     "dropzone": "^4.3.0"
   },
-  "version": "0.1.14",
+  "version": "0.1.15",
   "resolutions": {
     "moment": "^2.15.0"
   }

@@ -9,6 +9,7 @@
 
 
 
+
 	// Button style	
 	&.dz-clickable {
 
@@ -35,6 +36,10 @@
 
 	}
 
+	&.dz-max-files-reached {
+		pointer-events: none;
+	}
+
 	&.dz-started .dz-message {
 		display: none;
 	}
@@ -52,20 +57,10 @@
 		top: 50%;
 		width: 100%;
 
-
-		>span {
-			
-			display: inline-block;
-			font-size: 1em;
-			font-weight: bold;
-			color: rgba(191, 191, 191, 0.87);
-			position: relative;
-			top: -1em;
-			user-select: none;
-		}
-
-		.icon {
+		.icon, &.icon {
 			font-size: 3.25em;
+			margin-top: -0.25em;
+			color: rgba(191, 191, 191, 0.87);
 		}
 
 	}

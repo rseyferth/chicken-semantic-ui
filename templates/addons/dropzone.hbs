@@ -12,12 +12,14 @@
 			<div class="content">
 				<div class="header">{{file.name}}</div>
 				<div class="meta">{{fileSize file.size}}</div>
-				
-				<ui-progress value={{file.progress}} error={{file.errorMessage}}>
-					<div class="bar">
-						<div class="progress"></div>
-					</div>
-				</ui-progress>
+			
+				{{#unless file.complete}}	
+					<ui-progress value={{file.progress}} error={{file.errorMessage}}>
+						<div class="bar">
+							<div class="progress"></div>
+						</div>
+					</ui-progress>
+				{{/unless}}
 				{{#if file.errorMessage}}
 					<div class="ui error message">
 						{{file.errorMessage}}						

@@ -56,6 +56,12 @@ Chicken.component('ui-dropdown', 'semantic-ui:modules.dropdown', function() {
 
 			if (this._updating) return;
 			if (this.attributes.valueIsArray) {
+				if (!this.get('value')) {
+					this.set('value', [], true);
+				} else if (!(this.get('value') instanceof Chicken.Core.ObservableArray)) {
+					this.set('value', new Chicken.Core.ObservableArray(this.get('value')));
+				}
+				console.log(this.get('value'));
 				this.get('value').add(value);
 			}
 

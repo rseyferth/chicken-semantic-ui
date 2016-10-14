@@ -644,6 +644,12 @@ Chicken.component('ui-dropdown', 'semantic-ui:modules.dropdown', function () {
 
 			if (_this._updating) return;
 			if (_this.attributes.valueIsArray) {
+				if (!_this.get('value')) {
+					_this.set('value', [], true);
+				} else if (!(_this.get('value') instanceof Chicken.Core.ObservableArray)) {
+					_this.set('value', new Chicken.Core.ObservableArray(_this.get('value')));
+				}
+				console.log(_this.get('value'));
 				_this.get('value').add(value);
 			}
 		};

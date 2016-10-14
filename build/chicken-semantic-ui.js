@@ -322,7 +322,7 @@ Component.Config = {
 	thumbnailHeight: 290
 
 };
-"use strict";
+'use strict';
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
@@ -339,11 +339,11 @@ var SemanticApiRequest = function () {
 	}
 
 	_createClass(SemanticApiRequest, [{
-		key: "toSemantic",
+		key: 'toSemantic',
 		value: function toSemantic() {
 			var _this = this;
 
-			var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+			var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
 
 
 			// Basics
@@ -373,17 +373,20 @@ var SemanticApiRequest = function () {
 			return apiOptions;
 		}
 	}, {
-		key: "convertResponse",
+		key: 'convertResponse',
 		value: function convertResponse(callback) {
 			this.convertResponseCallback = callback;
 			return this;
 		}
 	}, {
-		key: "_convertApiResponse",
+		key: '_convertApiResponse',
 		value: function _convertApiResponse(response) {
 
+			// Fake api call
+			var apiCall = new Chicken.Api.ApiCall(this.api, 'get', '/');
+
 			// Parse it
-			var data = this.api.deserialize(response);
+			var data = this.api.deserialize(response, apiCall);
 
 			// Map to semantic format
 			var result = {

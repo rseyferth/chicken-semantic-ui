@@ -50,8 +50,11 @@ class SemanticApiRequest
 
 	_convertApiResponse(response) {
 
+		// Fake api call
+		let apiCall = new Chicken.Api.ApiCall(this.api, 'get', '/');
+
 		// Parse it
-		let data = this.api.deserialize(response);
+		let data = this.api.deserialize(response, apiCall);
 
 		// Map to semantic format
 		let result = {

@@ -3,7 +3,7 @@
  *	http://www.dropzonejs.com/
  */
 
-let Component = Chicken.component('ui-dropzone', 'semantic-ui:addons.dropzone', function() {
+let CmpDropzone = Chicken.component('ui-dropzone', 'semantic-ui:addons.dropzone', function() {
 
 	this.cssClass = 'ui selection dropdown dropzone';
 
@@ -104,7 +104,7 @@ let Component = Chicken.component('ui-dropzone', 'semantic-ui:addons.dropzone', 
 
 		}
 
-	}, Component.Config, this.attributes);
+	}, CmpDropzone.Config, this.attributes);
 
 
 	// Multple / single
@@ -197,7 +197,7 @@ let ComponentCallbacks = [
 ];
 
 // Global configuration
-Component.Config = {
+CmpDropzone.Config = {
 
 	modelValueAttribute: 'path',
 	thumbnailWidth: 290,

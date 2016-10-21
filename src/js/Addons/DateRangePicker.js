@@ -3,7 +3,7 @@
  *	http://www.daterangepicker.com/
  */
 
-let Component = Chicken.component('ui-date-range-picker', false, function() {
+let CmpDateRangePicker = Chicken.component('ui-date-range-picker', false, function() {
 
 	this.tagName = 'input';	
 
@@ -52,7 +52,7 @@ let Component = Chicken.component('ui-date-range-picker', false, function() {
 		if (typeof this.settings.locale === 'string') {
 
 			// Replace with locale
-			let locale = Component.Locales[this.settings.locale];
+			let locale = CmpDateRangePicker.Locales[this.settings.locale];
 			if (!locale) {
 				throw new Error('There is no DataRangePicker locale available for "' + this.settings.locale + '". You can set your custom locale by adding a key to Chicken.Dom.Component.registry.get(\'ui-date-range-picker\').Locales');
 			}
@@ -105,7 +105,7 @@ let Component = Chicken.component('ui-date-range-picker', false, function() {
 
 });
 
-Component.Locales = {
+CmpDateRangePicker.Locales = {
 
 	en: {
 		format: 'LL',

@@ -2,8 +2,8 @@
 
 /** START TEMPLATES **/
 Chicken.Dom.View.TemplateCache.set('semantic-ui:addons.dropzone', '\n{{#if files}}\n\n\t<div class="ui cards">\n\t{{#each files as |file|}}\n\t\t<div class="card">\n\t\t\t{{#if file.thumbnailBase64}}\n\t\t\t\t<div class="image">\n\t\t\t\t\t<img src={{file.thumbnailBase64}}>\n\t\t\t\t</div>\n\t\t\t{{/if}}\n\t\t\t<div class="content">\n\t\t\t\t<div class="header">{{file.name}}</div>\n\t\t\t\t<div class="meta">{{fileSize file.size}}</div>\n\t\t\t\n\t\t\t\t{{#unless file.complete}}\t\n\t\t\t\t\t<ui-progress value={{file.progress}} error={{file.errorMessage}}>\n\t\t\t\t\t\t<div class="bar">\n\t\t\t\t\t\t\t<div class="progress"></div>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t</ui-progress>\n\t\t\t\t{{/unless}}\n\t\t\t\t{{#if file.errorMessage}}\n\t\t\t\t\t<div class="ui error message">\n\t\t\t\t\t\t{{file.errorMessage}}\t\t\t\t\t\t\n\t\t\t\t\t</div>\n\t\t\t\t{{/if}}\n\t\t\t</div>\n\t\t\t{{#if file.complete}}\n\t\t\t<div class="ui bottom attached button" {{action "deleteFile" file}}>\n\t\t\t\t<i class="trash icon"></i>\n\t\t\t\t{{options.dictRemoveFile}}\n\t\t\t</div>\n\t\t\t{{/if}}\n\t\t</div>\n\t{{/each}}\n\t</div>\n\n{{else}}\n\t\n\t<i class="upload icon dz-message"></i>\n\n{{/if}}');
-Chicken.Dom.View.TemplateCache.set('semantic-ui:chicken.model-form', '{{yield}}\n\n{{#if error}}\n\t<div class="ui negative icon message">\n\t\t<i class="warning icon"></i>\n\t\t<div class="content">\n\t\t\t{{error}}\t\t\t\n\t\t</div>\t\t\n\t</div>\n{{/if}}\n');
 Chicken.Dom.View.TemplateCache.set('semantic-ui:modules.dropdown', '<input type="hidden">\n{{yield}}');
+Chicken.Dom.View.TemplateCache.set('semantic-ui:chicken.model-form', '{{yield}}\n\n{{#if error}}\n\t<div class="ui negative icon message">\n\t\t<i class="warning icon"></i>\n\t\t<div class="content">\n\t\t\t{{error}}\t\t\t\n\t\t</div>\t\t\n\t</div>\n{{/if}}\n');
 /** END TEMPLATES **/
 'use strict';
 
@@ -12,7 +12,7 @@ Chicken.Dom.View.TemplateCache.set('semantic-ui:modules.dropdown', '<input type=
  *	http://www.daterangepicker.com/
  */
 
-var Component = Chicken.component('ui-date-range-picker', false, function () {
+var CmpDateRangePicker = Chicken.component('ui-date-range-picker', false, function () {
 	var _this = this;
 
 	this.tagName = 'input';
@@ -62,7 +62,7 @@ var Component = Chicken.component('ui-date-range-picker', false, function () {
 		if (typeof _this.settings.locale === 'string') {
 
 			// Replace with locale
-			var locale = Component.Locales[_this.settings.locale];
+			var locale = CmpDateRangePicker.Locales[_this.settings.locale];
 			if (!locale) {
 				throw new Error('There is no DataRangePicker locale available for "' + _this.settings.locale + '". You can set your custom locale by adding a key to Chicken.Dom.Component.registry.get(\'ui-date-range-picker\').Locales');
 			}
@@ -107,7 +107,7 @@ var Component = Chicken.component('ui-date-range-picker', false, function () {
 	});
 });
 
-Component.Locales = {
+CmpDateRangePicker.Locales = {
 
 	en: {
 		format: 'LL',
@@ -151,7 +151,7 @@ var getOptions = function getOptions(defaultValues, component) {
  *	http://www.dropzonejs.com/
  */
 
-var Component = Chicken.component('ui-dropzone', 'semantic-ui:addons.dropzone', function () {
+var CmpDropzone = Chicken.component('ui-dropzone', 'semantic-ui:addons.dropzone', function () {
 	var _this = this;
 
 	this.cssClass = 'ui selection dropdown dropzone';
@@ -244,7 +244,7 @@ var Component = Chicken.component('ui-dropzone', 'semantic-ui:addons.dropzone', 
 
 		reset: function reset() {}
 
-	}, Component.Config, this.attributes);
+	}, CmpDropzone.Config, this.attributes);
 
 	// Multple / single
 	if (options.maxFiles === undefined) {
@@ -315,7 +315,7 @@ var Component = Chicken.component('ui-dropzone', 'semantic-ui:addons.dropzone', 
 var ComponentCallbacks = ['accept', 'renameFilename', 'fallback', 'resize', 'init'];
 
 // Global configuration
-Component.Config = {
+CmpDropzone.Config = {
 
 	modelValueAttribute: 'path',
 	thumbnailWidth: 290,

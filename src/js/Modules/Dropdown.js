@@ -12,6 +12,7 @@ Chicken.component('ui-dropdown', 'semantic-ui:modules.dropdown', function() {
 
 		}, this.attributes);
 
+
 		// Move validation data to hidden input
 		this.$hidden = this.$element.find('input[type="hidden"]');
 		let dv = this.$element.attr('data-validate');
@@ -60,8 +61,7 @@ Chicken.component('ui-dropdown', 'semantic-ui:modules.dropdown', function() {
 					this.set('value', [], true);
 				} else if (!(this.get('value') instanceof Chicken.Core.ObservableArray)) {
 					this.set('value', new Chicken.Core.ObservableArray(this.get('value')));
-				}
-				console.log(this.get('value'));
+				}				
 				this.get('value').add(value);
 			}
 

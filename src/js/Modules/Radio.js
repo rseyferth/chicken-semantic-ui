@@ -8,6 +8,7 @@ Chicken.component('ui-radio', false, function() {
 		let fieldsByValue = {};
 		let $fields = this.$element.find('.ui.checkbox')
 			.checkbox({
+				
 				onChange: function(...args)  {
 					
 					// Set value
@@ -15,12 +16,13 @@ Chicken.component('ui-radio', false, function() {
 					self.set('value', $checkbox.val());
 					
 				}
+
 			})
 			.each((index, el) => {
 				let $el = $(el);
 				let $input = $el.find('input[type="checkbox"],input[type="radio"]');
-				fieldsByValue[$input.val()] = $el;
-			});
+				fieldsByValue[$input.val()] = $el;				
+			});			
 
 		// Watch for change in value
 		let applyValue = () => {

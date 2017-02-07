@@ -3,6 +3,12 @@ Chicken.component('model-form', 'semantic-ui:chicken.model-form', function() {
 	this.tagName = 'form';
 	this.cssClass = 'ui form';
 
+	this.defaults({
+
+
+
+	});
+
 
 	this.when('ready', () => {
 
@@ -16,6 +22,9 @@ Chicken.component('model-form', 'semantic-ui:chicken.model-form', function() {
 			inline: true,
 			fields: rules,
 			focusInvalid: true,
+
+			showLoadingIndicator: true,
+			showLoadingIndicatorAfterSuccess: false,
 
 			onSuccess: (event) => {
 
@@ -40,7 +49,7 @@ Chicken.component('model-form', 'semantic-ui:chicken.model-form', function() {
 
 		// Set to busy
 		this.set('error', false);
-		this.$element.addClass('loading');
+		if (this.get('showLoadingIndicator')) this.$element.addClass('loading');
 
 		// Go and save it
 		this.get('model').save({
@@ -49,7 +58,7 @@ Chicken.component('model-form', 'semantic-ui:chicken.model-form', function() {
 
 		}).then((result) => {
 
-			this.$element.removeClass('loading');
+			if (!this.get('showLoadingIndicatorAfterSuccess')) this.$element.removeClass('loading');
 
 		}, (error) => {
 

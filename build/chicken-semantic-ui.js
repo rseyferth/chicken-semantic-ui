@@ -2,8 +2,8 @@
 
 /** START TEMPLATES **/
 Chicken.Dom.View.TemplateCache.set('semantic-ui:addons.dropzone', '\n{{#if files}}\n\n\t<div class="ui cards">\n\t{{#each files as |file|}}\n\t\t<div class="card">\n\t\t\t{{#if file.thumbnailBase64}}\n\t\t\t\t<div class="image">\n\t\t\t\t\t<img src={{file.thumbnailBase64}}>\n\t\t\t\t</div>\n\t\t\t{{/if}}\n\t\t\t<div class="content">\n\t\t\t\t<div class="header">{{file.name}}</div>\n\t\t\t\t<div class="meta">{{fileSize file.size}}</div>\n\t\t\t\n\t\t\t\t{{#unless file.complete}}\t\n\t\t\t\t\t<ui-progress value={{file.progress}} error={{file.errorMessage}}>\n\t\t\t\t\t\t<div class="bar">\n\t\t\t\t\t\t\t<div class="progress"></div>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t</ui-progress>\n\t\t\t\t{{/unless}}\n\t\t\t\t{{#if file.errorMessage}}\n\t\t\t\t\t<div class="ui error message">\n\t\t\t\t\t\t{{file.errorMessage}}\t\t\t\t\t\t\n\t\t\t\t\t</div>\n\t\t\t\t{{/if}}\n\t\t\t</div>\n\t\t\t{{#if file.complete}}\n\t\t\t<div class="ui bottom attached button" {{action "deleteFile" file}}>\n\t\t\t\t<i class="trash icon"></i>\n\t\t\t\t{{options.dictRemoveFile}}\n\t\t\t</div>\n\t\t\t{{/if}}\n\t\t</div>\n\t{{/each}}\n\t</div>\n\n{{else}}\n\t\n\t<i class="upload icon dz-message"></i>\n\n{{/if}}');
-Chicken.Dom.View.TemplateCache.set('semantic-ui:modules.dropdown', '<input type="hidden">\n{{yield}}');
 Chicken.Dom.View.TemplateCache.set('semantic-ui:chicken.model-form', '{{yield}}\n\n{{#if error}}\n\t<div class="ui negative icon message">\n\t\t<i class="warning icon"></i>\n\t\t<div class="content">\n\t\t\t{{error}}\t\t\t\n\t\t</div>\t\t\n\t</div>\n{{/if}}\n');
+Chicken.Dom.View.TemplateCache.set('semantic-ui:modules.dropdown', '<input type="hidden">\n{{yield}}');
 /** END TEMPLATES **/
 'use strict';
 
@@ -422,6 +422,24 @@ var SemanticApiRequest = function () {
 ;
 'use strict';
 
+window.ChickenSemantic = {
+	applyApiErrorToForm: function applyApiErrorToForm($form, apiError) {
+
+		// Loop errors
+		var errors = _.mapObject(apiError.getFormErrors(), function (messages, field) {
+
+			return messages.join(' ');
+		});
+
+		// This should work better in the future (new versions of Semantic)		
+		//$form.form('add errors', errors);
+		_.each(errors, function (message, key) {
+			$form.form('add prompt', key, message);
+		});
+	}
+};
+'use strict';
+
 Chicken.component('model-form', 'semantic-ui:chicken.model-form', function () {
 	var _this = this;
 
@@ -466,6 +484,9 @@ Chicken.component('model-form', 'semantic-ui:chicken.model-form', function () {
 		_this.set('error', false);
 		if (_this.get('showLoadingIndicator')) _this.$element.addClass('loading');
 
+		// Clear errors
+		_this.$element.find('.error').removeClass('error').find('.prompt').remove();
+
 		// Go and save it
 		_this.get('model').save({
 
@@ -475,6 +496,9 @@ Chicken.component('model-form', 'semantic-ui:chicken.model-form', function () {
 
 			if (!_this.get('showLoadingIndicatorAfterSuccess')) _this.$element.removeClass('loading');
 		}, function (error) {
+
+			// Check errors
+			window.ChickenSemantic.applyApiErrorToForm(_this.$element, error);
 
 			// Show the error
 			_this.set('error', error.getMessage());
@@ -599,14 +623,16 @@ Chicken.component('ui-dropdown', 'semantic-ui:modules.dropdown', function () {
 	this.tagName = 'div';
 	this.cssClass = 'ui dropdown';
 
+	this.defaults({
+		useModelAsValue: false,
+
+		minCharacters: 1
+	});
+
 	this.on('added', function ($el) {
 
 		// Create options
-		var options = $.extend({
-
-			useModelAsValue: false
-
-		}, _this.attributes);
+		var options = $.extend({}, _this.attributes);
 
 		// Move validation data to hidden input
 		_this.$hidden = _this.$element.find('input[type="hidden"]');
@@ -654,7 +680,6 @@ Chicken.component('ui-dropdown', 'semantic-ui:modules.dropdown', function () {
 				} else if (!(_this.get('value') instanceof Chicken.Core.ObservableArray)) {
 					_this.set('value', new Chicken.Core.ObservableArray(_this.get('value')));
 				}
-				console.log(_this.get('value'));
 				_this.get('value').add(value);
 			}
 		};
@@ -716,9 +741,6 @@ Chicken.component('ui-dropdown', 'semantic-ui:modules.dropdown', function () {
 
 			});
 		}
-
-		// Min-chars search
-		options.minCharacters = _this.getAttribute('minCharacters', 1);
 
 		///////////////
 		// Create it //

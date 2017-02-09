@@ -51,6 +51,9 @@ Chicken.component('model-form', 'semantic-ui:chicken.model-form', function() {
 		this.set('error', false);
 		if (this.get('showLoadingIndicator')) this.$element.addClass('loading');
 
+		// Clear errors
+		this.$element.find('.error').removeClass('error').find('.prompt').remove();
+
 		// Go and save it
 		this.get('model').save({
 
@@ -61,6 +64,9 @@ Chicken.component('model-form', 'semantic-ui:chicken.model-form', function() {
 			if (!this.get('showLoadingIndicatorAfterSuccess')) this.$element.removeClass('loading');
 
 		}, (error) => {
+
+			// Check errors
+			window.ChickenSemantic.applyApiErrorToForm(this.$element, error);
 
 			// Show the error
 			this.set('error', error.getMessage());

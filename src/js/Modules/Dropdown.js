@@ -2,15 +2,17 @@ Chicken.component('ui-dropdown', 'semantic-ui:modules.dropdown', function() {
 
 	this.tagName = 'div';
 	this.cssClass = 'ui dropdown';
+
+	this.defaults({ 
+		useModelAsValue: false,
+
+		minCharacters: 1
+	});
 	
 	this.on('added', ($el) => {
 
 		// Create options
-		let options = $.extend({
-
-			useModelAsValue: false
-
-		}, this.attributes);
+		let options = $.extend({}, this.attributes);
 
 
 		// Move validation data to hidden input
@@ -61,7 +63,7 @@ Chicken.component('ui-dropdown', 'semantic-ui:modules.dropdown', function() {
 					this.set('value', [], true);
 				} else if (!(this.get('value') instanceof Chicken.Core.ObservableArray)) {
 					this.set('value', new Chicken.Core.ObservableArray(this.get('value')));
-				}				
+				}
 				this.get('value').add(value);
 			}
 
@@ -130,9 +132,6 @@ Chicken.component('ui-dropdown', 'semantic-ui:modules.dropdown', function() {
 
 
 		}
-
-		// Min-chars search
-		options.minCharacters = this.getAttribute('minCharacters', 1);
 
 		///////////////
 		// Create it //

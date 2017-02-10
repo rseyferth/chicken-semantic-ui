@@ -436,6 +436,25 @@ window.ChickenSemantic = {
 		_.each(errors, function (message, key) {
 			$form.form('add prompt', key, message);
 		});
+	},
+	getUiOptions: function getUiOptions(component) {
+
+		// Get all keys with uiX
+		var options = {};
+		_.each(component.attributes, function (value, key) {
+
+			// uiX?
+			if (/^ui[A-Z]/.test(key)) {
+
+				// Remove uiX
+				key = _.decapitalize(key.replace(/^ui/, ''));
+
+				// Set it
+				options[key] = value;
+			}
+		});
+
+		return options;
 	}
 };
 'use strict';
@@ -780,6 +799,48 @@ Chicken.component('ui-dropdown', 'semantic-ui:modules.dropdown', function () {
 		// Initial value?
 		applyValue();
 	});
+});
+'use strict';
+
+Chicken.component('ui-modal', false, function () {
+
+	this.cssClass = 'ui modal';
+
+	this.defaults({
+		uiDetachable: true,
+		uiAutofocus: true,
+		uiObserveChanges: false,
+		uiAllowMultiple: false,
+		uiKeyboardShortcuts: true,
+		uiOffset: 0,
+		uiContent: 'body',
+		uiClosable: true,
+		uiDimmerSettings: {
+			closable: false,
+			useCSS: true
+		},
+		uiTransition: 'scale',
+		uiDuration: 400,
+		uiQueue: false
+	});
+
+	this.when('ready', function () {});
+}, {
+	_initialize: function _initialize() {
+
+		// Already done?
+		if (this.isInitialized) return;
+		this.isInitialized = true;
+
+		// Make modal
+		var config = ChickenSemantic.getUiOptions(this);
+		this.$element.modal(config);
+	},
+	show: function show() {
+
+		this._initialize();
+		this.$element.modal('show');
+	}
 });
 'use strict';
 

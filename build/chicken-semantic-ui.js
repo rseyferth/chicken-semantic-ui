@@ -128,6 +128,7 @@ var getOptions = function getOptions(defaultValues, component) {
 
 	// Loop through keys and check if user has set them as attribute
 	var values = $.extend(defaultValues, {});
+
 	_.each(values, function (value, key) {
 
 		// Is there a value?
@@ -880,6 +881,10 @@ Chicken.component('ui-radio', false, function () {
 
 	var self = this;
 
+	this.defaults({
+		useModelAsValue: false
+	});
+
 	this.on('added', function ($el) {
 
 		// Enable all checkboxes
@@ -890,7 +895,15 @@ Chicken.component('ui-radio', false, function () {
 
 				// Set value
 				var $checkbox = $(this);
-				self.set('value', $checkbox.val());
+				var value = $checkbox.val();
+
+				if (self.get('useModelAsValue') && self.get('sourceCollection') && self.get('valueAttribute')) {
+					value = self.get('sourceCollection').find(self.get('valueAttribute'), $checkbox.val());
+				}
+
+				if (!value) return;
+
+				self.set('value', value);
 			}
 
 		}).each(function (index, el) {
@@ -902,8 +915,15 @@ Chicken.component('ui-radio', false, function () {
 		// Watch for change in value
 		var applyValue = function applyValue() {
 
-			// Find input and set it checked
-			var field = fieldsByValue[_this.get('value')];
+			var value = _this.get('value');
+			if (!value) return;
+
+			// getvalueAttribute from value if model is used
+			if (_this.get('useModelAsValue') && _this.get('valueAttribute')) {
+				value = _this.get('value').get(_this.get('valueAttribute'));
+			}
+
+			var field = fieldsByValue[value];
 			if (field) field.checkbox('check');
 		};
 		_this.observe('value', applyValue);

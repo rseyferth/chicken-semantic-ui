@@ -2,8 +2,13 @@ Chicken.component('ui-radio', false, function() {
 
 	let self = this;
 
+	this.defaults({ 
+		useModelAsValue: false
+	});
+
+
 	this.on('added', ($el) => {
-		
+
 		// Enable all checkboxes
 		let fieldsByValue = {};
 		let $fields = this.$element.find('.ui.checkbox')
@@ -13,7 +18,16 @@ Chicken.component('ui-radio', false, function() {
 					
 					// Set value
 					let $checkbox = $(this);
-					self.set('value', $checkbox.val());
+					let value = $checkbox.val();
+					
+
+					if (self.get('useModelAsValue') && self.get('sourceCollection') && self.get('valueAttribute')) {
+						value = self.get('sourceCollection').find(self.get('valueAttribute'), $checkbox.val());
+					}
+
+					if (!value) return;
+
+					self.set('value', value);
 					
 				}
 
@@ -27,15 +41,20 @@ Chicken.component('ui-radio', false, function() {
 		// Watch for change in value
 		let applyValue = () => {
 
-			// Find input and set it checked
-			let field = fieldsByValue[this.get('value')];
+			let value = this.get('value');
+			if (!value) return;			
+
+			// getvalueAttribute from value if model is used
+			if (this.get('useModelAsValue') && this.get('valueAttribute')) {
+				value = this.get('value').get(this.get('valueAttribute'));
+			}
+
+			let field = fieldsByValue[value];
 			if (field) field.checkbox('check');
 
 		};
 		this.observe('value', applyValue);
 		applyValue();
-
-
 
 	});
 

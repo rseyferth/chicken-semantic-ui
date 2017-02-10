@@ -149,6 +149,7 @@ let getOptions = (defaultValues, component) => {
 
 	// Loop through keys and check if user has set them as attribute
 	let values = $.extend(defaultValues, {});
+
 	_.each(values, (value, key) => {
 
 		// Is there a value?

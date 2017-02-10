@@ -14,6 +14,7 @@ Chicken.component('ui-dropdown', 'semantic-ui:modules.dropdown', function() {
 		// Create options
 		let options = $.extend({}, this.attributes);
 
+
 		// Move validation data to hidden input
 		this.$hidden = this.$element.find('input[type="hidden"]');
 		let dv = this.$element.attr('data-validate');

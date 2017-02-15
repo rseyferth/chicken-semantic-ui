@@ -17,13 +17,14 @@ Chicken.component('ui-modal', false, function() {
 		},
 		uiTransition: 'scale',
 		uiDuration: 400,
-		uiQueue: false
+		uiQueue: false,
+		overrideButtonBehaviour: false
 	});
 
 	
 	this.when('ready', () => {
 
-		
+				
 
 	});
 
@@ -31,6 +32,7 @@ Chicken.component('ui-modal', false, function() {
 }, {
 	
 	_initialize() {
+		
 		
 		// Already done?
 		if (this.isInitialized) return;
@@ -40,6 +42,19 @@ Chicken.component('ui-modal', false, function() {
 		let config = ChickenSemantic.getUiOptions(this);
 		this.$element.modal(config);
 
+		//override default button behaviour ?
+		if (this.get('overrideButtonBehaviour')) {
+			this.$element.modal({
+				onApprove: function() {
+					return false;
+				},
+				onDeny: function() {
+					return false;
+				}
+			});
+		}
+
+
 	},
 
 	show() {
@@ -47,6 +62,10 @@ Chicken.component('ui-modal', false, function() {
 		this._initialize();
 		this.$element.modal('show');
 
+	},
+
+	hide() {
+		this.$element.modal('hide');
 	}
 
 });

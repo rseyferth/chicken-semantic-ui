@@ -822,7 +822,8 @@ Chicken.component('ui-modal', false, function () {
 		},
 		uiTransition: 'scale',
 		uiDuration: 400,
-		uiQueue: false
+		uiQueue: false,
+		overrideButtonBehaviour: false
 	});
 
 	this.when('ready', function () {});
@@ -836,11 +837,26 @@ Chicken.component('ui-modal', false, function () {
 		// Make modal
 		var config = ChickenSemantic.getUiOptions(this);
 		this.$element.modal(config);
+
+		//override default button behaviour ?
+		if (this.get('overrideButtonBehaviour')) {
+			this.$element.modal({
+				onApprove: function onApprove() {
+					return false;
+				},
+				onDeny: function onDeny() {
+					return false;
+				}
+			});
+		}
 	},
 	show: function show() {
 
 		this._initialize();
 		this.$element.modal('show');
+	},
+	hide: function hide() {
+		this.$element.modal('hide');
 	}
 });
 'use strict';

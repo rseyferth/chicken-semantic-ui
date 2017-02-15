@@ -2,47 +2,90 @@
  * This component uses the following package:
  *	http://www.dropzonejs.com/
  */
+let DropzoneComponent = Chicken.component('ui-dropzone', 'semantic-ui:addons.dropzone', function() {
 
-let CmpDropzone = Chicken.component('ui-dropzone', 'semantic-ui:addons.dropzone', function() {
+	///////////////////
+	// Configuration //
+	///////////////////
 
 	this.cssClass = 'ui selection dropdown dropzone';
+	this.defaults({
+		
+		dzMaxFilesize: 32,
+		dzFilesizeBase: 1000,
+		dzParamName: 'file',
+		dzUploadMultiple: false,
+		dzAcceptedFiles: null,
+
+		multiple: false,
+
+		value: false
+
+	});
 
 	// Stats
 	this.set('files', [], true);
 	
+
 	//////////////////////
 	// Dropzone options //
 	//////////////////////
 
-	let options = $.extend({
+	this.options = $.extend({
 
 		addedfile: (file) => {
 
+			// Real file, or mock?
+			let data;
+			if (file instanceof File) {
+
+				// File from browser
+				data = {
+					file: file,
+					name: file.name,
+					size: file.size,
+					complete: false,
+					canceled: false,
+					success: false,
+					errorMessage: false,
+					uploading: true,
+					progress: 0,
+					bytesSent: 0,
+					thumbnailBase64: false,
+					model: null
+				};
+
+			} else {
+
+				// File from api
+				data = {
+					file: file,
+					name: file.name,
+					size: 100000,
+					complete: true,
+					canceled: false,
+					success: true,
+					errorMessage: false,
+					uploading: false,
+					progress: 100,
+					bytesSent: 100,
+					thumbnailBase64: false,
+					model: null
+				};
+
+			}
+
 			// Create a 'model'
-			let model = Chicken.observable({
-				file: file,
-				name: file.name,
-				size: file.size,
-				complete: false,
-				canceled: false,
-				success: false,
-				errorMessage: false,
-				uploading: true,
-				progress: 0,
-				bytesSent: 0,
-				thumbnailBase64: false,
-				model: null
-			});
+			let model = Chicken.observable(data);
 			file.model = model;
 			this.get('files').add(model);
-			
+
 		},
 
 		thumbnail: (file, dataUrl) => {
 
 			// Store on file
 			file.model.set('thumbnailBase64', dataUrl);
-
 			
 		},
 
@@ -104,55 +147,18 @@ let CmpDropzone = Chicken.component('ui-dropzone', 'semantic-ui:addons.dropzone'
 
 		}
 
-	}, CmpDropzone.Config, this.attributes);
+	}, DropzoneComponent.Config, this.getAttributes('dz'));
 
 
 	// Multple / single
-	if (options.maxFiles === undefined) {
-		options.maxFiles = this.attributes.multiple ? null : 1;
+	if (this.options.maxFiles === undefined) {
+		this.options.maxFiles = this.attributes.multiple ? null : 1;
 	}
-
-	// Start with a list of files
-	let value = this.get('value');
-	
-	let updateValue = () => {
-
-		// Single?
-		if (options.multiple) {
-
-			// Set values
-			let values = [];
-			this.get('files').each((file) => {
-				if (file.get('model')) {
-					values.push(file.get('model').get(options.modelValueAttribute))
-				}
-			});
-			this.set('value', values, true);
-
-		} else {
-			// Get first
-			if (this.get('files').length === 0) {
-				this.set('value', null);
-			} else {
-				let file = this.get('files.0');
-				if (file.get('model')) {
-					this.set('value', file.get('model').get(options.modelValueAttribute));					
-				} else {
-					this.set('value', null);
-				}
-			}
-
-		}
-
-
-	};
-
-
-
 
 
 	// Make available in template
-	this.set('options', options, true);
+	this.set('options', this.options, true);
+
 
 	// When rendered
 	this.when('ready', () => {
@@ -161,9 +167,14 @@ let CmpDropzone = Chicken.component('ui-dropzone', 'semantic-ui:addons.dropzone'
 		// Make the dropzone. //
 		////////////////////////
 
-		this.dropzone = new Dropzone(this.$element[0], options);
+		this.dropzone = new Dropzone(this.$element[0], this.options);
+
+		// Apply existing
+		this.applyValue();
+
 
 	});
+
 
 	/////////////
 	// Actions //
@@ -176,7 +187,7 @@ let CmpDropzone = Chicken.component('ui-dropzone', 'semantic-ui:addons.dropzone'
 		this.dropzone.removeFile(file.get('file'));
 
 		// Update
-		updateValue();
+		this.updateValue();
 			
 	});
 
@@ -184,9 +195,72 @@ let CmpDropzone = Chicken.component('ui-dropzone', 'semantic-ui:addons.dropzone'
 
 
 
+}, {
+
+	applyValue() {
+
+		let files = this.get('value');
+		if (typeof files === 'string') files = [files];
+		if (files instanceof Array) {
+			_.each(files, (f) => {
+				
+				// Add mock file
+				let data = {
+					name: f,
+					size: 12345
+				};
+				let model = this.dropzone.emit('addedfile', data);
+				this.dropzone.emit("thumbnail", data, this.options.url + '/' + f);
+
+
+			});
+		}
+
+	},
+
+
+	updateValue() {
+
+		// Single?
+		if (this.options.multiple) {
+
+			// Set values
+			let values = [];
+			this.get('files').each((file) => {
+				if (file.get('model')) {
+					values.push(file.get('model').get(this.options.modelValueAttribute))
+				}
+			});
+			this.set('value', values, true);
+
+		} else {
+		
+			// Get first
+			if (this.get('files').length === 0) {
+				this.set('value', null);
+			} else {
+				let file = this.get('files').first();
+				
+				if (file.get('model')) {
+					this.set('value', file.get('model').get(this.options.modelValueAttribute));					
+				} else {
+					this.set('value', null);
+				}
+
+			}
+
+		}
+
+
+	}
+
+
+
+
+
 });
 
-let ComponentCallbacks = [
+DropzoneComponent.ComponentCallbacks = [
 
 	'accept',
 	'renameFilename',
@@ -197,8 +271,9 @@ let ComponentCallbacks = [
 ];
 
 // Global configuration
-CmpDropzone.Config = {
+DropzoneComponent.Config = {
 
+	url: '/',
 	modelValueAttribute: 'path',
 	thumbnailWidth: 290,
 	thumbnailHeight: 290

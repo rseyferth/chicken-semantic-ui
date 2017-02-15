@@ -1,7 +1,7 @@
 'use strict';
 
 /** START TEMPLATES **/
-Chicken.Dom.View.TemplateCache.set('semantic-ui:addons.dropzone', '\n{{#if files}}\n\n\t<div class="ui cards">\n\t{{#each files as |file|}}\n\t\t<div class="card">\n\t\t\t{{#if file.thumbnailBase64}}\n\t\t\t\t<div class="image">\n\t\t\t\t\t<img src={{file.thumbnailBase64}}>\n\t\t\t\t</div>\n\t\t\t{{/if}}\n\t\t\t<div class="content">\n\t\t\t\t<div class="header">{{file.name}}</div>\n\t\t\t\t<div class="meta">{{fileSize file.size}}</div>\n\t\t\t\n\t\t\t\t{{#unless file.complete}}\t\n\t\t\t\t\t<ui-progress value={{file.progress}} error={{file.errorMessage}}>\n\t\t\t\t\t\t<div class="bar">\n\t\t\t\t\t\t\t<div class="progress"></div>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t</ui-progress>\n\t\t\t\t{{/unless}}\n\t\t\t\t{{#if file.errorMessage}}\n\t\t\t\t\t<div class="ui error message">\n\t\t\t\t\t\t{{file.errorMessage}}\t\t\t\t\t\t\n\t\t\t\t\t</div>\n\t\t\t\t{{/if}}\n\t\t\t</div>\n\t\t\t{{#if file.complete}}\n\t\t\t<div class="ui bottom attached button" {{action "deleteFile" file}}>\n\t\t\t\t<i class="trash icon"></i>\n\t\t\t\t{{options.dictRemoveFile}}\n\t\t\t</div>\n\t\t\t{{/if}}\n\t\t</div>\n\t{{/each}}\n\t</div>\n\n{{else}}\n\t\n\t<i class="upload icon dz-message"></i>\n\n{{/if}}');
+Chicken.Dom.View.TemplateCache.set('semantic-ui:addons.dropzone', '\n{{#if files}}\n\n\t<div class="ui cards">\n\t{{#each files as |file|}}\n\t\t<div class="card">\n\t\t\t{{#if file.thumbnailBase64}}\n\t\t\t\t<div class="image">\n\t\t\t\t\t<img src={{file.thumbnailBase64}}>\n\t\t\t\t</div>\n\t\t\t{{/if}}\n\t\t\t<div class="content">\n\t\t\t\n\t\t\t\t{{#unless file.complete}}\t\n\t\t\t\t\t<ui-progress value={{file.progress}} error={{file.errorMessage}}>\n\t\t\t\t\t\t<div class="bar">\n\t\t\t\t\t\t\t<div class="progress"></div>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t</ui-progress>\n\t\t\t\t{{/unless}}\n\t\t\t\t{{#if file.errorMessage}}\n\t\t\t\t\t<div class="ui error message">\n\t\t\t\t\t\t{{file.errorMessage}}\t\t\t\t\t\t\n\t\t\t\t\t</div>\n\t\t\t\t{{/if}}\n\t\t\t</div>\n\t\t\t{{#if file.complete}}\n\t\t\t<div class="ui bottom attached button" {{action "deleteFile" file}}>\n\t\t\t\t<i class="trash icon"></i>\n\t\t\t\t{{options.dictRemoveFile}}\n\t\t\t</div>\n\t\t\t{{/if}}\n\t\t</div>\n\t{{/each}}\n\t</div>\n\n{{else}}\n\t\n\t<i class="upload icon dz-message"></i>\n\n{{/if}}');
 Chicken.Dom.View.TemplateCache.set('semantic-ui:chicken.model-form', '{{yield}}\n\n{{#if error}}\n\t<div class="ui negative icon message">\n\t\t<i class="warning icon"></i>\n\t\t<div class="content">\n\t\t\t{{error}}\t\t\t\n\t\t</div>\t\t\n\t</div>\n{{/if}}\n');
 Chicken.Dom.View.TemplateCache.set('semantic-ui:modules.dropdown', '<input type="hidden">\n{{yield}}');
 /** END TEMPLATES **/
@@ -151,11 +151,27 @@ var getOptions = function getOptions(defaultValues, component) {
  * This component uses the following package:
  *	http://www.dropzonejs.com/
  */
-
-var CmpDropzone = Chicken.component('ui-dropzone', 'semantic-ui:addons.dropzone', function () {
+var DropzoneComponent = Chicken.component('ui-dropzone', 'semantic-ui:addons.dropzone', function () {
 	var _this = this;
 
+	///////////////////
+	// Configuration //
+	///////////////////
+
 	this.cssClass = 'ui selection dropdown dropzone';
+	this.defaults({
+
+		dzMaxFilesize: 32,
+		dzFilesizeBase: 1000,
+		dzParamName: 'file',
+		dzUploadMultiple: false,
+		dzAcceptedFiles: null,
+
+		multiple: false,
+
+		value: false
+
+	});
 
 	// Stats
 	this.set('files', [], true);
@@ -164,25 +180,50 @@ var CmpDropzone = Chicken.component('ui-dropzone', 'semantic-ui:addons.dropzone'
 	// Dropzone options //
 	//////////////////////
 
-	var options = $.extend({
+	this.options = $.extend({
 
 		addedfile: function addedfile(file) {
 
+			// Real file, or mock?
+			var data = void 0;
+			if (file instanceof File) {
+
+				// File from browser
+				data = {
+					file: file,
+					name: file.name,
+					size: file.size,
+					complete: false,
+					canceled: false,
+					success: false,
+					errorMessage: false,
+					uploading: true,
+					progress: 0,
+					bytesSent: 0,
+					thumbnailBase64: false,
+					model: null
+				};
+			} else {
+
+				// File from api
+				data = {
+					file: file,
+					name: file.name,
+					size: 100000,
+					complete: true,
+					canceled: false,
+					success: true,
+					errorMessage: false,
+					uploading: false,
+					progress: 100,
+					bytesSent: 100,
+					thumbnailBase64: false,
+					model: null
+				};
+			}
+
 			// Create a 'model'
-			var model = Chicken.observable({
-				file: file,
-				name: file.name,
-				size: file.size,
-				complete: false,
-				canceled: false,
-				success: false,
-				errorMessage: false,
-				uploading: true,
-				progress: 0,
-				bytesSent: 0,
-				thumbnailBase64: false,
-				model: null
-			});
+			var model = Chicken.observable(data);
 			file.model = model;
 			_this.get('files').add(model);
 		},
@@ -245,48 +286,15 @@ var CmpDropzone = Chicken.component('ui-dropzone', 'semantic-ui:addons.dropzone'
 
 		reset: function reset() {}
 
-	}, CmpDropzone.Config, this.attributes);
+	}, DropzoneComponent.Config, this.getAttributes('dz'));
 
 	// Multple / single
-	if (options.maxFiles === undefined) {
-		options.maxFiles = this.attributes.multiple ? null : 1;
+	if (this.options.maxFiles === undefined) {
+		this.options.maxFiles = this.attributes.multiple ? null : 1;
 	}
 
-	// Start with a list of files
-	var value = this.get('value');
-
-	var updateValue = function updateValue() {
-
-		// Single?
-		if (options.multiple) {
-			(function () {
-
-				// Set values
-				var values = [];
-				_this.get('files').each(function (file) {
-					if (file.get('model')) {
-						values.push(file.get('model').get(options.modelValueAttribute));
-					}
-				});
-				_this.set('value', values, true);
-			})();
-		} else {
-			// Get first
-			if (_this.get('files').length === 0) {
-				_this.set('value', null);
-			} else {
-				var file = _this.get('files.0');
-				if (file.get('model')) {
-					_this.set('value', file.get('model').get(options.modelValueAttribute));
-				} else {
-					_this.set('value', null);
-				}
-			}
-		}
-	};
-
 	// Make available in template
-	this.set('options', options, true);
+	this.set('options', this.options, true);
 
 	// When rendered
 	this.when('ready', function () {
@@ -295,7 +303,10 @@ var CmpDropzone = Chicken.component('ui-dropzone', 'semantic-ui:addons.dropzone'
 		// Make the dropzone. //
 		////////////////////////
 
-		_this.dropzone = new Dropzone(_this.$element[0], options);
+		_this.dropzone = new Dropzone(_this.$element[0], _this.options);
+
+		// Apply existing
+		_this.applyValue();
 	});
 
 	/////////////
@@ -309,15 +320,67 @@ var CmpDropzone = Chicken.component('ui-dropzone', 'semantic-ui:addons.dropzone'
 		_this.dropzone.removeFile(file.get('file'));
 
 		// Update
-		updateValue();
+		_this.updateValue();
 	});
+}, {
+	applyValue: function applyValue() {
+		var _this2 = this;
+
+		var files = this.get('value');
+		if (typeof files === 'string') files = [files];
+		if (files instanceof Array) {
+			_.each(files, function (f) {
+
+				// Add mock file
+				var data = {
+					name: f,
+					size: 12345
+				};
+				var model = _this2.dropzone.emit('addedfile', data);
+				_this2.dropzone.emit("thumbnail", data, _this2.options.url + '/' + f);
+			});
+		}
+	},
+	updateValue: function updateValue() {
+		var _this3 = this;
+
+		// Single?
+		if (this.options.multiple) {
+			(function () {
+
+				// Set values
+				var values = [];
+				_this3.get('files').each(function (file) {
+					if (file.get('model')) {
+						values.push(file.get('model').get(_this3.options.modelValueAttribute));
+					}
+				});
+				_this3.set('value', values, true);
+			})();
+		} else {
+
+			// Get first
+			if (this.get('files').length === 0) {
+				this.set('value', null);
+			} else {
+				var file = this.get('files').first();
+
+				if (file.get('model')) {
+					this.set('value', file.get('model').get(this.options.modelValueAttribute));
+				} else {
+					this.set('value', null);
+				}
+			}
+		}
+	}
 });
 
-var ComponentCallbacks = ['accept', 'renameFilename', 'fallback', 'resize', 'init'];
+DropzoneComponent.ComponentCallbacks = ['accept', 'renameFilename', 'fallback', 'resize', 'init'];
 
 // Global configuration
-CmpDropzone.Config = {
+DropzoneComponent.Config = {
 
+	url: '/',
 	modelValueAttribute: 'path',
 	thumbnailWidth: 290,
 	thumbnailHeight: 290
@@ -440,22 +503,7 @@ window.ChickenSemantic = {
 	},
 	getUiOptions: function getUiOptions(component) {
 
-		// Get all keys with uiX
-		var options = {};
-		_.each(component.attributes, function (value, key) {
-
-			// uiX?
-			if (/^ui[A-Z]/.test(key)) {
-
-				// Remove uiX
-				key = _.decapitalize(key.replace(/^ui/, ''));
-
-				// Set it
-				options[key] = value;
-			}
-		});
-
-		return options;
+		return component.getAttributes('ui');
 	}
 };
 'use strict';
@@ -526,87 +574,6 @@ Chicken.component('model-form', 'semantic-ui:chicken.model-form', function () {
 			// No longer loading
 			_this.$element.removeClass('loading');
 		});
-	});
-});
-'use strict';
-
-Chicken.component('ui-button', false, function () {
-	var _this = this;
-
-	this.tagName = 'button';
-	this.cssClass = 'ui button';
-
-	this.dom.on('click', function () {
-
-		_this.sendAction();
-	});
-});
-'use strict';
-
-Chicken.component('ui-input', false, function () {
-	var _this = this;
-
-	this.tagName = 'input';
-
-	this.on('added', function () {
-
-		////////////////////////////////
-		// Whenever the value changes //
-		////////////////////////////////
-
-		_this._updating = false;
-		_this.$element.on('change blur', function () {
-
-			// Not updating...
-			if (_this._updating) return;
-
-			// Set it
-			_this.set('value', _this.$element.val());
-		});
-
-		var applyValue = function applyValue() {
-
-			// Get value
-			_this._updating = true; // To prevent feedback loop
-			_this.$element.val(_this.get('value'));
-			_this._updating = false;
-		};
-		_this.observe('value', applyValue);
-		applyValue();
-	});
-});
-'use strict';
-
-Chicken.component('ui-textarea', false, function () {
-	var _this = this;
-
-	this.tagName = 'textarea';
-
-	this.on('added', function () {
-
-		////////////////////////////////
-		// Whenever the value changes //
-		////////////////////////////////
-
-		_this._updating = false;
-		_this.$element.on('change blur', function () {
-
-			// Not updating...
-			if (_this._updating) return;
-
-			// Set it
-			_this.set('value', _this.$element.val());
-		});
-
-		var applyValue = function applyValue() {
-
-			// Get value
-			_this._updating = true; // To prevent feedback loop
-			_this.$element.val(_this.get('value'));
-			_this._updating = false;
-		};
-		_this.observe('value', applyValue);
-		applyValue();
 	});
 });
 'use strict';
@@ -941,6 +908,87 @@ Chicken.component('ui-radio', false, function () {
 
 			var field = fieldsByValue[value];
 			if (field) field.checkbox('check');
+		};
+		_this.observe('value', applyValue);
+		applyValue();
+	});
+});
+'use strict';
+
+Chicken.component('ui-button', false, function () {
+	var _this = this;
+
+	this.tagName = 'button';
+	this.cssClass = 'ui button';
+
+	this.dom.on('click', function () {
+
+		_this.sendAction();
+	});
+});
+'use strict';
+
+Chicken.component('ui-input', false, function () {
+	var _this = this;
+
+	this.tagName = 'input';
+
+	this.on('added', function () {
+
+		////////////////////////////////
+		// Whenever the value changes //
+		////////////////////////////////
+
+		_this._updating = false;
+		_this.$element.on('change blur', function () {
+
+			// Not updating...
+			if (_this._updating) return;
+
+			// Set it
+			_this.set('value', _this.$element.val());
+		});
+
+		var applyValue = function applyValue() {
+
+			// Get value
+			_this._updating = true; // To prevent feedback loop
+			_this.$element.val(_this.get('value'));
+			_this._updating = false;
+		};
+		_this.observe('value', applyValue);
+		applyValue();
+	});
+});
+'use strict';
+
+Chicken.component('ui-textarea', false, function () {
+	var _this = this;
+
+	this.tagName = 'textarea';
+
+	this.on('added', function () {
+
+		////////////////////////////////
+		// Whenever the value changes //
+		////////////////////////////////
+
+		_this._updating = false;
+		_this.$element.on('change blur', function () {
+
+			// Not updating...
+			if (_this._updating) return;
+
+			// Set it
+			_this.set('value', _this.$element.val());
+		});
+
+		var applyValue = function applyValue() {
+
+			// Get value
+			_this._updating = true; // To prevent feedback loop
+			_this.$element.val(_this.get('value'));
+			_this._updating = false;
 		};
 		_this.observe('value', applyValue);
 		applyValue();

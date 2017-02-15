@@ -20,24 +20,7 @@ window.ChickenSemantic = {
 
 	getUiOptions(component) {
 
-		// Get all keys with uiX
-		let options = {};
-		_.each(component.attributes, (value, key) => {
-
-			// uiX?
-			if (/^ui[A-Z]/.test(key)) {
-
-				// Remove uiX
-				key = _.decapitalize(key.replace(/^ui/, ''));
-
-				// Set it
-				options[key] = value;
-
-			}
-
-		});
-
-		return options;
+		return component.getAttributes('ui');
 
 	}
 

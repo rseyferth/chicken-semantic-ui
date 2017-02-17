@@ -40,27 +40,69 @@ Chicken.component('ui-modal', false, function() {
 
 		// Make modal
 		let config = ChickenSemantic.getUiOptions(this);
-		this.$element.modal(config);
 
-		//override default button behaviour ?
+		// Override default button behaviour ?
 		if (this.get('overrideButtonBehaviour')) {
-			this.$element.modal({
-				onApprove: function() {
-					return false;
-				},
-				onDeny: function() {
-					return false;
+			
+			config.onApprove = () => { return false; }
+			config.onDeny = () => { return false; }
+
+		} else {
+
+			config.onApprove = () => {
+
+				// Callback?
+				if (this._approveCallback) {
+					if (this._approveCallback() === false) return false;
 				}
-			});
+
+				// Done
+				if (this._showResolve) this._showResolve();
+				
+			};
+			config.onDeny = () => {
+
+				// Callback?
+				if (this._denyCallback) {
+					if (this._denyCallback() === false) return false;
+				}
+
+				// Done
+				if (this._showReject) this._showReject();
+
+			};
+			config.onHide = () =>{
+
+				// Done
+				if (this._showReject) this._showReject();
+
+			};
+
 		}
 
 
+		// Init modal
+		this.$element.modal(config);
+
 	},
 
-	show() {
+	show(approveCallback = null, denyCallback = null) {
 
+		// Initialize
 		this._initialize();
+
+		// Store callbacks
+		this._approveCallback = approveCallback;
+		this._denyCallback = denyCallback;
+
+		// Show it
 		this.$element.modal('show');
+
+		// Create result promise
+		return new Promise((resolve, reject) => {
+			this._showResolve = resolve;
+			this._showReject = reject;
+		});
 
 	},
 

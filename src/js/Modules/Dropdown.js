@@ -15,10 +15,13 @@ Chicken.component('ui-dropdown', 'semantic-ui:modules.dropdown', function() {
 
 
 		useModelAsValue: false,
-		minCharacters: 1
+		minCharacters: 1,
+
+		source: false
 
 	});
 	
+
 
 	//////////
 	// Data //
@@ -31,7 +34,7 @@ Chicken.component('ui-dropdown', 'semantic-ui:modules.dropdown', function() {
 		if (this.get('source') instanceof Chicken.Data.Collection) {
 
 			// Render it in the view
-			this.set('records', this.get('source'));
+			this.set('dropdownRecords', this.get('source'));
 
 		}
 

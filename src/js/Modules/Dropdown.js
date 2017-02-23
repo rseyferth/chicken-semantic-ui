@@ -1,19 +1,51 @@
 Chicken.component('ui-dropdown', 'semantic-ui:modules.dropdown', function() {
 
+	///////////////////
+	// Configuration //
+	///////////////////
+
 	this.tagName = 'div';
 	this.cssClass = 'ui dropdown';
 
 	this.defaults({ 
-		useModelAsValue: false,
+	
+		nameAttribute: 'name',
+		valueAttribute: 'value',
+		textAttribute: 'name',
 
+
+		useModelAsValue: false,
 		minCharacters: 1
+
 	});
 	
+
+	//////////
+	// Data //
+	//////////
+
+	this.modelMap = {};
+	this.beforeRender(() => {
+
+		// Collection given?
+		if (this.get('source') instanceof Chicken.Data.Collection) {
+
+			// Render it in the view
+			this.set('records', this.get('source'));
+
+		}
+
+	});
+
+
+	///////////////
+	// Behaviour //
+	///////////////
+
 	this.on('added', ($el) => {
 
 		// Create options
-		let options = $.extend({}, this.attributes);
-
+		let options = this.getAttributes('ui');
 
 		// Move validation data to hidden input
 		this.$hidden = this.$element.find('input[type="hidden"]');
@@ -30,6 +62,7 @@ Chicken.component('ui-dropdown', 'semantic-ui:modules.dropdown', function() {
 		// Multi?
 		this.multiple = this.$element.is('.multiple');
 		
+
 		// Prevent observer-loops
 		this._updating = false;
 
@@ -45,7 +78,7 @@ Chicken.component('ui-dropdown', 'semantic-ui:modules.dropdown', function() {
 			if (!this.attributes.valueIsArray) {
 				
 				// Use model?
-				if (options.useModelAsValue) {
+				if (this.get('useModelAsValue')) {
 					value = this.modelMap[value];
 				}
 
@@ -77,59 +110,49 @@ Chicken.component('ui-dropdown', 'semantic-ui:modules.dropdown', function() {
 
 		};
 
-		////////////////
-		// Atrributes //
-		////////////////
 
-		let nameAttribute = options.nameAttribute || 'name';
-		let valueAttribute = options.valueAttribute || 'value';
-		let textAttribute = options.textAttribute || 'text';
-		
+		///////////////////
+		// Source given? //
+		///////////////////
 
-		////////////////////
-		// Remote source? //
-		////////////////////
+		if (this.get('source')) {
 
-		this.modelMap = {};
-		if (this.attributes.source) {
+			// Remote source (url)?
+			if (typeof this.get('source') === 'string') {
 
-			// Get api
-			let apiKey = this.attributes.apiKey ? this.attributes.apiKey : null;
-			let api = Chicken.app.api(apiKey);
-			
-			// Make request
-			let request = new SemanticApiRequest(api, this.attributes.source);
-
-			// Check key, name, and value attribute
-			if (this.attributes.nameAttribute && !this.attributes.textAttribute) {
-				textAttribute = nameAttribute;
-			}
-
-			// Convert the response from the API
-			options.apiSettings = request.convertResponse((response) => {
-
-				return response.map((model) => {
+				// Get api
+				let apiKey = this.attributes.apiKey ? this.attributes.apiKey : null;
+				let api = Chicken.app.api(apiKey);
 				
-					// Store the model itself
-					if (options.useModelAsValue) {
-						this.modelMap[model.get(valueAttribute)] = model;
-					}
+				// Make request
+				let request = new SemanticApiRequest(api, this.attributes.source);
 
-					// Convert to semantic format
-					return {
-						name: model.get(nameAttribute),
-						value: model.get(valueAttribute),
-						text: model.get(textAttribute)
-					}
+				// Convert the response from the API
+				options.apiSettings = request.convertResponse((response) => {
+
+					return response.map((model) => {
+					
+						// Store the model itself
+						if (this.get('useModelAsValue')) {
+							this.modelMap[model.get(this.get('valueAttribute'))] = model;
+						}
+
+						// Convert to semantic format
+						return {
+							name: model.get(this.get('nameAttribute')),
+							value: model.get(this.get('valueAttribute')),
+							text: model.get(this.get('textAttribute'))
+						}
+
+					});
+
+				}).toSemantic({
+					
+					cache: options.cache || false
 
 				});
 
-			}).toSemantic({
-				
-				cache: options.cache || false
-
-			});
-
+			}
 
 		}
 
@@ -160,8 +183,8 @@ Chicken.component('ui-dropdown', 'semantic-ui:modules.dropdown', function() {
 			if (value instanceof Chicken.Data.Model) {
 
 				// Get info from the model
-				$el.dropdown('set text', value.get(textAttribute));
-				$el.dropdown('set value', value.get(valueAttribute));				
+				$el.dropdown('set text', value.get(this.get('textAttribute')));
+				$el.dropdown('set value', value.get(this.get('valueAttribute')));				
 
 			} else {
 

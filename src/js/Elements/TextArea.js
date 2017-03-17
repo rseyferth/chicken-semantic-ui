@@ -9,23 +9,31 @@ Chicken.component('ui-textarea', false, function() {
 		// Whenever the value changes //
 		////////////////////////////////
 		
-		this._updating = false;
-		this.$element.on('change blur', () => {
+		this._hasFocus = false;
+		this.$element.on('focus', () => {
+			this._hasFocus = true;
+		});
+		this.$element.on('blur', () => {
+			this._hasFocus = false;
+		});
 
-			// Not updating...
-			if (this._updating) return;
+		this.$element.on('change keyup paste', () => {
 
 			// Set it
-			this.set('value', this.$element.val());
+			let text = this.$element.val();
+			if (this.get('value') !== text) {
+				this.set('value', text);
+			}
 
 		});
 
 		let applyValue = () => {
 			
 			// Get value
-			this._updating = true;		// To prevent feedback loop
-			this.$element.val(this.get('value'));
-			this._updating = false;
+			let text = this.get('value');
+			if (this.$element.val() !== text && !this._hasFocus) {
+				this.$element.val(this.get('value'));
+			}
 							
 		};
 		this.observe('value', applyValue);

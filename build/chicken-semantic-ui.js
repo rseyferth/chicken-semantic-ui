@@ -628,22 +628,30 @@ Chicken.component('ui-textarea', false, function () {
 		// Whenever the value changes //
 		////////////////////////////////
 
-		_this._updating = false;
-		_this.$element.on('change blur', function () {
+		_this._hasFocus = false;
+		_this.$element.on('focus', function () {
+			_this._hasFocus = true;
+		});
+		_this.$element.on('blur', function () {
+			_this._hasFocus = false;
+		});
 
-			// Not updating...
-			if (_this._updating) return;
+		_this.$element.on('change keyup paste', function () {
 
 			// Set it
-			_this.set('value', _this.$element.val());
+			var text = _this.$element.val();
+			if (_this.get('value') !== text) {
+				_this.set('value', text);
+			}
 		});
 
 		var applyValue = function applyValue() {
 
 			// Get value
-			_this._updating = true; // To prevent feedback loop
-			_this.$element.val(_this.get('value'));
-			_this._updating = false;
+			var text = _this.get('value');
+			if (_this.$element.val() !== text && !_this._hasFocus) {
+				_this.$element.val(_this.get('value'));
+			}
 		};
 		_this.observe('value', applyValue);
 		applyValue();
@@ -974,6 +982,21 @@ Chicken.component('ui-progress', false, function () {
 	this.tagName = 'div';
 	this.cssClass = 'ui progress';
 
+	this.defaults({
+
+		error: '',
+
+		uiAutoSuccess: true,
+		uiShowActivity: false,
+		uiLimitValues: true,
+		uiLabel: 'percent',
+		uiPrecision: 1,
+		uiTotal: false,
+
+		value: false
+
+	});
+
 	this.observe('error', function () {
 
 		// Toggle class
@@ -982,12 +1005,10 @@ Chicken.component('ui-progress', false, function () {
 
 	this.on('added', function ($el) {
 
-		$el.progress({
-			value: _this.get('value')
-		});
-
-		// Toggle class
-		_this.$element.toggleClass('error', _this.get('error').length > 0);
+		// Create progress bar
+		var attr = _this.getAttributes('ui');
+		attr.value = _this.get('value');
+		$el.progress(attr);
 	});
 
 	this.observe('value', function () {

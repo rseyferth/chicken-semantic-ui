@@ -3,6 +3,21 @@ Chicken.component('ui-progress', false, function() {
 	this.tagName = 'div';
 	this.cssClass = 'ui progress';
 
+	this.defaults({
+
+		error: '',
+
+		uiAutoSuccess: true,
+		uiShowActivity: false,
+		uiLimitValues: true,
+		uiLabel: 'percent',
+		uiPrecision: 1,
+		uiTotal: false,
+
+		value: false
+		
+	});
+
 	this.observe('error', () => {
 
 		// Toggle class
@@ -12,14 +27,12 @@ Chicken.component('ui-progress', false, function() {
 
 	this.on('added', ($el) => {
 		
-		$el.progress({
-			value: this.get('value')
-		});
+		// Create progress bar
+		let attr = this.getAttributes('ui');
+		attr.value = this.get('value');
+		$el.progress(attr);
 
 		
-		// Toggle class
-		this.$element.toggleClass('error', this.get('error').length > 0);
-
 	});
 
 	this.observe('value', () => {

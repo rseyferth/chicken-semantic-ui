@@ -18,13 +18,20 @@ Chicken.component('ui-modal', false, function() {
 		uiTransition: 'scale',
 		uiDuration: 400,
 		uiQueue: false,
-		overrideButtonBehaviour: false
+		
+		overrideButtonBehaviour: false,
+
+		autoShow: false
+
 	});
 
 	
 	this.when('ready', () => {
 
-				
+		// Auto-show?
+		if (this.get('autoShow')) {
+			this.show();
+		}
 
 	});
 

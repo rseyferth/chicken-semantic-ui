@@ -2,8 +2,8 @@
 
 /** START TEMPLATES **/
 Chicken.Dom.View.TemplateCache.set('semantic-ui:addons.dropzone', '\n{{#if files}}\n\n\t<div class="ui cards">\n\t{{#each files as |file|}}\n\t\t<div class="card">\n\t\t\t{{#if file.thumbnailBase64}}\n\t\t\t\t<div class="image">\n\t\t\t\t\t<img src={{file.thumbnailBase64}}>\n\t\t\t\t</div>\n\t\t\t{{/if}}\n\t\t\t<div class="content">\n\t\t\t\n\t\t\t\t{{#unless file.complete}}\t\n\t\t\t\t\t<ui-progress value={{file.progress}} error={{file.errorMessage}}>\n\t\t\t\t\t\t<div class="bar">\n\t\t\t\t\t\t\t<div class="progress"></div>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t</ui-progress>\n\t\t\t\t{{/unless}}\n\t\t\t\t{{#if file.errorMessage}}\n\t\t\t\t\t<div class="ui error message">\n\t\t\t\t\t\t{{file.errorMessage}}\t\t\t\t\t\t\n\t\t\t\t\t</div>\n\t\t\t\t{{/if}}\n\t\t\t</div>\n\t\t\t{{#if file.complete}}\n\t\t\t<div class="ui bottom attached button" {{action "deleteFile" file}}>\n\t\t\t\t<i class="trash icon"></i>\n\t\t\t\t{{options.dictRemoveFile}}\n\t\t\t</div>\n\t\t\t{{/if}}\n\t\t</div>\n\t{{/each}}\n\t</div>\n\n{{else}}\n\t\n\t<i class="upload icon dz-message"></i>\n\n{{/if}}');
-Chicken.Dom.View.TemplateCache.set('semantic-ui:modules.dropdown', '<input type="hidden">\n{{yield}}\n{{#if $records}}\n\t<div class="menu">\n\t\t{{#each $records as |record|}}\n\t\t<div class="item" data-value={{get record valueAttribute}}>{{get record textAttribute}}</div>\n\t\t{{/each}}\n\t</div>\n{{/if}}');
 Chicken.Dom.View.TemplateCache.set('semantic-ui:chicken.model-form', '{{yield}}\n\n{{#if error}}\n\t<div class="ui negative icon message">\n\t\t<i class="warning icon"></i>\n\t\t<div class="content">\n\t\t\t{{error}}\t\t\t\n\t\t</div>\t\t\n\t</div>\n{{/if}}\n');
+Chicken.Dom.View.TemplateCache.set('semantic-ui:modules.dropdown', '<input type="hidden">\n{{yield}}\n{{#if $records}}\n\t<div class="menu">\n\t\t{{#each $records as |record|}}\n\t\t<div class="item" data-value={{get record valueAttribute}}>{{get record textAttribute}}</div>\n\t\t{{/each}}\n\t</div>\n{{/if}}');
 /** END TEMPLATES **/
 'use strict';
 
@@ -478,6 +478,95 @@ var SemanticApiRequest = function () {
 ;
 'use strict';
 
+Chicken.component('ui-button', false, function () {
+	var _this = this;
+
+	this.tagName = 'button';
+	this.cssClass = 'ui button';
+
+	this.dom.on('click', function () {
+
+		_this.sendAction();
+	});
+});
+'use strict';
+
+Chicken.component('ui-input', false, function () {
+	var _this = this;
+
+	this.tagName = 'input';
+
+	this.on('added', function () {
+
+		////////////////////////////////
+		// Whenever the value changes //
+		////////////////////////////////
+
+		_this._updating = false;
+		_this.$element.on('change blur', function () {
+
+			// Not updating...
+			if (_this._updating) return;
+
+			// Set it
+			_this.set('value', _this.$element.val());
+		});
+
+		var applyValue = function applyValue() {
+
+			// Get value
+			_this._updating = true; // To prevent feedback loop
+			_this.$element.val(_this.get('value'));
+			_this._updating = false;
+		};
+		_this.observe('value', applyValue);
+		applyValue();
+	});
+});
+'use strict';
+
+Chicken.component('ui-textarea', false, function () {
+	var _this = this;
+
+	this.tagName = 'textarea';
+
+	this.on('added', function () {
+
+		////////////////////////////////
+		// Whenever the value changes //
+		////////////////////////////////
+
+		_this._hasFocus = false;
+		_this.$element.on('focus', function () {
+			_this._hasFocus = true;
+		});
+		_this.$element.on('blur', function () {
+			_this._hasFocus = false;
+		});
+
+		_this.$element.on('change keyup paste', function () {
+
+			// Set it
+			var text = _this.$element.val();
+			if (_this.get('value') !== text) {
+				_this.set('value', text);
+			}
+		});
+
+		var applyValue = function applyValue() {
+
+			// Get value
+			var text = _this.get('value');
+			if (_this.$element.val() !== text && !_this._hasFocus) {
+				_this.$element.val(_this.get('value'));
+			}
+		};
+		_this.observe('value', applyValue);
+		applyValue();
+	});
+});
+'use strict';
+
 window.ChickenSemantic = {
 	applyApiErrorToForm: function applyApiErrorToForm($form, apiError) {
 
@@ -566,95 +655,6 @@ Chicken.component('model-form', 'semantic-ui:chicken.model-form', function () {
 			// No longer loading
 			_this.$element.removeClass('loading');
 		});
-	});
-});
-'use strict';
-
-Chicken.component('ui-button', false, function () {
-	var _this = this;
-
-	this.tagName = 'button';
-	this.cssClass = 'ui button';
-
-	this.dom.on('click', function () {
-
-		_this.sendAction();
-	});
-});
-'use strict';
-
-Chicken.component('ui-input', false, function () {
-	var _this = this;
-
-	this.tagName = 'input';
-
-	this.on('added', function () {
-
-		////////////////////////////////
-		// Whenever the value changes //
-		////////////////////////////////
-
-		_this._updating = false;
-		_this.$element.on('change blur', function () {
-
-			// Not updating...
-			if (_this._updating) return;
-
-			// Set it
-			_this.set('value', _this.$element.val());
-		});
-
-		var applyValue = function applyValue() {
-
-			// Get value
-			_this._updating = true; // To prevent feedback loop
-			_this.$element.val(_this.get('value'));
-			_this._updating = false;
-		};
-		_this.observe('value', applyValue);
-		applyValue();
-	});
-});
-'use strict';
-
-Chicken.component('ui-textarea', false, function () {
-	var _this = this;
-
-	this.tagName = 'textarea';
-
-	this.on('added', function () {
-
-		////////////////////////////////
-		// Whenever the value changes //
-		////////////////////////////////
-
-		_this._hasFocus = false;
-		_this.$element.on('focus', function () {
-			_this._hasFocus = true;
-		});
-		_this.$element.on('blur', function () {
-			_this._hasFocus = false;
-		});
-
-		_this.$element.on('change keyup paste', function () {
-
-			// Set it
-			var text = _this.$element.val();
-			if (_this.get('value') !== text) {
-				_this.set('value', text);
-			}
-		});
-
-		var applyValue = function applyValue() {
-
-			// Get value
-			var text = _this.get('value');
-			if (_this.$element.val() !== text && !_this._hasFocus) {
-				_this.$element.val(_this.get('value'));
-			}
-		};
-		_this.observe('value', applyValue);
-		applyValue();
 	});
 });
 'use strict';
@@ -987,6 +987,70 @@ Chicken.component('ui-modal', false, function () {
 });
 'use strict';
 
+Chicken.component('ui-popup', false, function () {
+	var _this = this;
+
+	///////////////////
+	// Configuration //
+	///////////////////
+
+	this.defaults({
+
+		// https://semantic-ui.com/modules/popup.html#/settings
+		uiPopup: false,
+		uiExclusive: false,
+		uiMovePopup: true,
+		uiObserveChanges: true,
+		uiBoundary: window,
+		uiContext: $('body'),
+		uiScrollContext: window,
+		uiJitter: 2,
+		uiPosition: 'top left',
+		uiInline: false,
+		uiPreserve: false,
+		uiPrefer: 'adjacent',
+		uiLastResort: false,
+		uiOn: 'hover',
+		uiDelay: {
+			show: 50,
+			hide: 0
+		},
+		uiTransition: 'slide down',
+		uiDuration: 200,
+		uiSetFluidWidth: true,
+		uiHoverable: false,
+		uiClosable: true,
+		uiAddTouchEvents: true,
+		uiHideOnScroll: 'auto',
+		uiTarget: false,
+		uiDistanceAway: 0,
+		uiOffset: 0,
+		uiMaxSearchDepth: 10
+
+	});
+
+	///////////////
+	// Behaviour //
+	///////////////
+
+	this.when('ready', function () {
+
+		// Activate
+		var options = _this.getAttributes('ui');
+		console.log(options);
+		options.onShow = function () {
+			for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+				args[_key] = arguments[_key];
+			}
+
+			console.log(args);
+		};
+
+		_this.$element.popup(options);
+	});
+}, {});
+'use strict';
+
 Chicken.component('ui-progress', false, function () {
 	var _this = this;
 
@@ -1024,9 +1088,7 @@ Chicken.component('ui-progress', false, function () {
 
 	this.observe('value', function () {
 
-		_this.$element.progress({
-			value: _this.get('value')
-		});
+		_this.$element.progress('set progress', _this.get('value'));
 	});
 });
 'use strict';

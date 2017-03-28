@@ -26,7 +26,7 @@ Chicken.component('ui-progress', false, function() {
 	});
 
 	this.on('added', ($el) => {
-		
+			
 		// Create progress bar
 		let attr = this.getAttributes('ui');
 		attr.value = this.get('value');
@@ -37,9 +37,7 @@ Chicken.component('ui-progress', false, function() {
 
 	this.observe('value', () => {
 
-		this.$element.progress({
-			value: this.get('value')
-		});
+		this.$element.progress('set progress', this.get('value'));
 		
 	});
 

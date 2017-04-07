@@ -115,6 +115,9 @@ Chicken.component('ui-modal', false, function() {
 
 	hide() {
 		this.$element.modal('hide');
+	},
+	refresh() {
+		this.$element.modal('refresh');	
 	}
 
 });

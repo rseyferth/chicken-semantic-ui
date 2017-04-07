@@ -78,9 +78,21 @@ let DateRangePickerComponent = Chicken.component('ui-date-range-picker', false, 
 		// Get value(s) //
 		//////////////////
 
-		if (this.get('startDate')) this.settings.startDate = moment(this.get('startDate'));
-		if (this.get('endDate')) this.settings.endDate = moment(this.get('endDate'));
-
+		if (this.get('startDate')) {
+			this.settings.startDate = moment(this.get('startDate'));
+			this.observe('startDate', () => {
+				this.picker.setStartDate(this.get('startDate'));
+				if (this.get('uiSingleDatePicker')) {
+					this.picker.setEndDate(this.get('startDate'));
+				}
+			});
+		}
+		if (this.get('endDate')) {
+			this.settings.endDate = moment(this.get('endDate'));
+			this.observe('endDate', () => {
+				this.picker.setEndDate(this.get('endDate'));				
+			});
+		}
 
 		///////////////////////
 		// Enable datepicker //
@@ -94,7 +106,7 @@ let DateRangePickerComponent = Chicken.component('ui-date-range-picker', false, 
 
 		});
 		this.picker = this.$element.data('daterangepicker');
-
+		
 
 		///////////
 		// Icons //

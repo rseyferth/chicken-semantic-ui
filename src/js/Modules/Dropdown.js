@@ -32,9 +32,16 @@ Chicken.component('ui-dropdown', 'semantic-ui:modules.dropdown', function() {
 
 		// Collection given?
 		if (this.get('source') instanceof Chicken.Data.Collection) {
-
+			
 			// Render it in the view
 			this.set('dropdownRecords', this.get('source'));
+
+			// Create model map
+			if (this.get('useModelAsValue')) {
+				this.get('source').each((model) => {
+					this.modelMap[model.get(this.get('valueAttribute'))] = model;
+				});
+			}
 
 		}
 

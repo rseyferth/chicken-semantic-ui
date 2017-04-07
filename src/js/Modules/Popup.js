@@ -48,10 +48,9 @@ Chicken.component('ui-popup', false, function() {
 
 		// Activate
 		let options = this.getAttributes('ui');
-console.log(options);
-		options.onShow = (...args) => {
-			console.log(args);
-		};
+		/*options.onShow = (...args) => {
+			
+		};*/
 
 		this.$element.popup(options);
 

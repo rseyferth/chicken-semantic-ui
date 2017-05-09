@@ -351,15 +351,17 @@ var DropzoneComponent = Chicken.component('ui-dropzone', 'semantic-ui:addons.dro
 
 		// Single?
 		if (this.options.multiple) {
+			(function () {
 
-			// Set values
-			var values = [];
-			this.get('files').each(function (file) {
-				if (file.get('model')) {
-					values.push(file.get('model').get(_this3.options.modelValueAttribute));
-				}
-			});
-			this.set('value', values, true);
+				// Set values
+				var values = [];
+				_this3.get('files').each(function (file) {
+					if (file.get('model')) {
+						values.push(file.get('model').get(_this3.options.modelValueAttribute));
+					}
+				});
+				_this3.set('value', values, true);
+			})();
 		} else {
 
 			// Get first
@@ -1163,3 +1165,34 @@ Chicken.component('ui-radio', false, function () {
 		applyValue();
 	});
 });
+'use strict';
+
+Chicken.component('ui-sticky', false, function () {
+	var _this = this;
+
+	///////////////////
+	// Configuration //
+	///////////////////
+
+	this.cssClass = 'ui sticky';
+	this.defaults({
+
+		// https://semantic-ui.com/modules/sticky.html#/settings
+		uiPushing: false,
+		uiJitter: 5,
+		uiObserveChanges: false,
+		uiContext: false,
+		uiScrollContext: window,
+		uiOffset: 0,
+		uiBottomOffset: 0
+	});
+
+	///////////////
+	// Behaviour //
+	///////////////
+
+	this.when('ready', function () {
+
+		_this.$element.sticky(_this.getAttributes('ui'));
+	});
+}, {});

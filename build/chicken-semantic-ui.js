@@ -351,17 +351,15 @@ var DropzoneComponent = Chicken.component('ui-dropzone', 'semantic-ui:addons.dro
 
 		// Single?
 		if (this.options.multiple) {
-			(function () {
 
-				// Set values
-				var values = [];
-				_this3.get('files').each(function (file) {
-					if (file.get('model')) {
-						values.push(file.get('model').get(_this3.options.modelValueAttribute));
-					}
-				});
-				_this3.set('value', values, true);
-			})();
+			// Set values
+			var values = [];
+			this.get('files').each(function (file) {
+				if (file.get('model')) {
+					values.push(file.get('model').get(_this3.options.modelValueAttribute));
+				}
+			});
+			this.set('value', values, true);
 		} else {
 
 			// Get first
@@ -580,6 +578,80 @@ Chicken.component('model-form', 'semantic-ui:chicken.model-form', function () {
 			_this.$element.removeClass('loading');
 		});
 	});
+});
+'use strict';
+
+Chicken.component('ui-menu', false, function () {
+	var _this = this;
+
+	///////////////////
+	// Configuration //
+	///////////////////
+
+	this.defaults({
+
+		value: false
+
+	});
+
+	///////////////
+	// Behaviour //
+	///////////////
+
+	this.when('ready', function () {
+
+		// Index items
+		_this.indexItems();
+
+		// Selection!
+		_this.observe('value', function () {
+
+			// Apply selected
+			_this.applyValue();
+		});
+		_this.applyValue();
+	});
+}, {
+
+	////////////////////
+	// Public methods //
+	////////////////////
+
+	indexItems: function indexItems() {
+		var _this2 = this;
+
+		// Find items
+		this.items = [];
+		this.$items = $(this.$element).find('.item').each(function (index, el) {
+
+			// Add it
+			var $el = $(el);
+			_this2.items.push({
+				$element: $el,
+				value: _this2._getValue($el)
+			});
+		});
+
+		// Click event
+		this.$items.on('click', function (e) {
+			e.preventDefault();
+
+			// Get value
+			_this2.set('value', _this2._getValue($(e.target)));
+		});
+	},
+	applyValue: function applyValue() {
+		var _this3 = this;
+
+		// Toggle item activeness
+		_.each(this.items, function (item) {
+
+			item.$element.toggleClass('active', item.value === _this3.get('value'));
+		});
+	},
+	_getValue: function _getValue($el) {
+		return $el.data('value') || $el.text();
+	}
 });
 'use strict';
 
@@ -915,7 +987,8 @@ Chicken.component('ui-modal', false, function () {
 
 		overrideButtonBehaviour: false,
 
-		autoShow: false
+		autoShow: false,
+		autoCenter: false
 
 	});
 
@@ -924,6 +997,31 @@ Chicken.component('ui-modal', false, function () {
 		// Auto-show?
 		if (_this.get('autoShow')) {
 			_this.show();
+		}
+
+		// Center?
+		if (_this.get('autoCenter')) {
+
+			// When revalidated
+			var knownComponents = [];
+			_this.on('revalidate', function () {
+
+				// Check child components
+				_.each(_this.components, function (comp, key) {
+
+					// Already known?
+					if (_.contains(knownComponents, key)) return;
+					knownComponents.push(key);
+
+					// Listen
+					comp.on('revalidate', function () {
+						_this.refresh();
+					});
+				});
+
+				// Refresh it
+				_this.refresh();
+			});
 		}
 	});
 }, {
@@ -1006,6 +1104,11 @@ Chicken.component('ui-modal', false, function () {
 	},
 	refresh: function refresh() {
 		this.$element.modal('refresh');
+	},
+	setLoading: function setLoading() {
+		var isLoading = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : true;
+
+		this.$element.toggleClass('loading', isLoading);
 	}
 });
 'use strict';

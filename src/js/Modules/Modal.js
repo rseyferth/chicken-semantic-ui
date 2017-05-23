@@ -21,7 +21,8 @@ Chicken.component('ui-modal', false, function() {
 		
 		overrideButtonBehaviour: false,
 
-		autoShow: false
+		autoShow: false,
+		autoCenter: false
 
 	});
 
@@ -31,6 +32,34 @@ Chicken.component('ui-modal', false, function() {
 		// Auto-show?
 		if (this.get('autoShow')) {
 			this.show();
+		}
+
+		// Center?
+		if (this.get('autoCenter')) {
+			
+			// When revalidated
+			let knownComponents = [];
+			this.on('revalidate', () => {
+
+				// Check child components
+				_.each(this.components, (comp, key) => {
+
+					// Already known?
+					if (_.contains(knownComponents, key)) return;
+					knownComponents.push(key);
+
+					// Listen
+					comp.on('revalidate', () => {
+						this.refresh();
+					});
+				});
+
+				// Refresh it
+				this.refresh();
+				
+			});
+
+
 		}
 
 	});
@@ -118,6 +147,10 @@ Chicken.component('ui-modal', false, function() {
 	},
 	refresh() {
 		this.$element.modal('refresh');	
+	},
+
+	setLoading(isLoading = true) {
+		this.$element.toggleClass('loading', isLoading);
 	}
 
 });

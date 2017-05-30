@@ -351,15 +351,17 @@ var DropzoneComponent = Chicken.component('ui-dropzone', 'semantic-ui:addons.dro
 
 		// Single?
 		if (this.options.multiple) {
+			(function () {
 
-			// Set values
-			var values = [];
-			this.get('files').each(function (file) {
-				if (file.get('model')) {
-					values.push(file.get('model').get(_this3.options.modelValueAttribute));
-				}
-			});
-			this.set('value', values, true);
+				// Set values
+				var values = [];
+				_this3.get('files').each(function (file) {
+					if (file.get('model')) {
+						values.push(file.get('model').get(_this3.options.modelValueAttribute));
+					}
+				});
+				_this3.set('value', values, true);
+			})();
 		} else {
 
 			// Get first
@@ -389,6 +391,98 @@ DropzoneComponent.Config = {
 	thumbnailHeight: 290
 
 };
+'use strict';
+
+window.ChickenSemantic = {
+	applyApiErrorToForm: function applyApiErrorToForm($form, apiError) {
+
+		// Loop errors
+		var errors = _.mapObject(apiError.getFormErrors(), function (messages, field) {
+
+			return messages.join(' ');
+		});
+
+		// This should work better in the future (new versions of Semantic)		
+		//$form.form('add errors', errors);
+		_.each(errors, function (message, key) {
+			$form.form('add prompt', key, message);
+		});
+	},
+	getUiOptions: function getUiOptions(component) {
+
+		return component.getAttributes('ui');
+	}
+};
+'use strict';
+
+Chicken.component('model-form', 'semantic-ui:chicken.model-form', function () {
+	var _this = this;
+
+	this.tagName = 'form';
+	this.cssClass = 'ui form';
+
+	this.defaults({});
+
+	this.when('ready', function () {
+
+		// Get validation for model
+		var formKey = _this.get('key');
+		if (!formKey) formKey = 'default';
+		var rules = _this.get('model').getValidationRules(formKey);
+		_this.$element.form({
+
+			on: 'blur',
+			inline: true,
+			fields: rules,
+			focusInvalid: true,
+
+			showLoadingIndicator: true,
+			showLoadingIndicatorAfterSuccess: false,
+
+			onSuccess: function onSuccess(event) {
+
+				event.preventDefault();
+				_this.sendAction('save');
+			}
+
+		});
+
+		// Prevent default form submission
+		_this.$element.on('submit', function (e) {
+			e.preventDefault();
+		});
+	});
+
+	this.action('save', function () {
+
+		// Set to busy
+		_this.set('error', false);
+		if (_this.get('showLoadingIndicator')) _this.$element.addClass('loading');
+
+		// Clear errors
+		_this.$element.find('.error').removeClass('error').find('.prompt').remove();
+
+		// Go and save it
+		_this.get('model').save({
+
+			uri: _this.get('uri')
+
+		}).then(function (result) {
+
+			if (!_this.get('showLoadingIndicatorAfterSuccess')) _this.$element.removeClass('loading');
+		}, function (error) {
+
+			// Check errors
+			window.ChickenSemantic.applyApiErrorToForm(_this.$element, error);
+
+			// Show the error
+			_this.set('error', error.getMessage());
+
+			// No longer loading
+			_this.$element.removeClass('loading');
+		});
+	});
+});
 'use strict';
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -487,98 +581,6 @@ var SemanticApiRequest = function () {
 }();
 
 ;
-'use strict';
-
-window.ChickenSemantic = {
-	applyApiErrorToForm: function applyApiErrorToForm($form, apiError) {
-
-		// Loop errors
-		var errors = _.mapObject(apiError.getFormErrors(), function (messages, field) {
-
-			return messages.join(' ');
-		});
-
-		// This should work better in the future (new versions of Semantic)		
-		//$form.form('add errors', errors);
-		_.each(errors, function (message, key) {
-			$form.form('add prompt', key, message);
-		});
-	},
-	getUiOptions: function getUiOptions(component) {
-
-		return component.getAttributes('ui');
-	}
-};
-'use strict';
-
-Chicken.component('model-form', 'semantic-ui:chicken.model-form', function () {
-	var _this = this;
-
-	this.tagName = 'form';
-	this.cssClass = 'ui form';
-
-	this.defaults({});
-
-	this.when('ready', function () {
-
-		// Get validation for model
-		var formKey = _this.get('key');
-		if (!formKey) formKey = 'default';
-		var rules = _this.get('model').getValidationRules(formKey);
-		_this.$element.form({
-
-			on: 'blur',
-			inline: true,
-			fields: rules,
-			focusInvalid: true,
-
-			showLoadingIndicator: true,
-			showLoadingIndicatorAfterSuccess: false,
-
-			onSuccess: function onSuccess(event) {
-
-				event.preventDefault();
-				_this.sendAction('save');
-			}
-
-		});
-
-		// Prevent default form submission
-		_this.$element.on('submit', function (e) {
-			e.preventDefault();
-		});
-	});
-
-	this.action('save', function () {
-
-		// Set to busy
-		_this.set('error', false);
-		if (_this.get('showLoadingIndicator')) _this.$element.addClass('loading');
-
-		// Clear errors
-		_this.$element.find('.error').removeClass('error').find('.prompt').remove();
-
-		// Go and save it
-		_this.get('model').save({
-
-			uri: _this.get('uri')
-
-		}).then(function (result) {
-
-			if (!_this.get('showLoadingIndicatorAfterSuccess')) _this.$element.removeClass('loading');
-		}, function (error) {
-
-			// Check errors
-			window.ChickenSemantic.applyApiErrorToForm(_this.$element, error);
-
-			// Show the error
-			_this.set('error', error.getMessage());
-
-			// No longer loading
-			_this.$element.removeClass('loading');
-		});
-	});
-});
 'use strict';
 
 Chicken.component('ui-menu', false, function () {
@@ -1001,27 +1003,29 @@ Chicken.component('ui-modal', false, function () {
 
 		// Center?
 		if (_this.get('autoCenter')) {
+			(function () {
 
-			// When revalidated
-			var knownComponents = [];
-			_this.on('revalidate', function () {
+				// When revalidated
+				var knownComponents = [];
+				_this.on('revalidate', function () {
 
-				// Check child components
-				_.each(_this.components, function (comp, key) {
+					// Check child components
+					_.each(_this.components, function (comp, key) {
 
-					// Already known?
-					if (_.contains(knownComponents, key)) return;
-					knownComponents.push(key);
+						// Already known?
+						if (_.contains(knownComponents, key)) return;
+						knownComponents.push(key);
 
-					// Listen
-					comp.on('revalidate', function () {
-						_this.refresh();
+						// Listen
+						comp.on('revalidate', function () {
+							_this.refresh();
+						});
 					});
-				});
 
-				// Refresh it
-				_this.refresh();
-			});
+					// Refresh it
+					_this.refresh();
+				});
+			})();
 		}
 	});
 }, {
@@ -1120,6 +1124,7 @@ Chicken.component('ui-popup', false, function () {
 	// Configuration //
 	///////////////////
 
+	this.tagName = 'span';
 	this.defaults({
 
 		// https://semantic-ui.com/modules/popup.html#/settings

@@ -4,6 +4,7 @@ Chicken.component('ui-popup', false, function() {
 	// Configuration //
 	///////////////////
 
+	this.tagName = 'span';
 	this.defaults({
 
 		// https://semantic-ui.com/modules/popup.html#/settings

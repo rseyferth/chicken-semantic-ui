@@ -15,9 +15,21 @@ Chicken.component('ui-dropdown', 'semantic-ui:modules.dropdown', function() {
 
 
 		useModelAsValue: false,
-		minCharacters: 1,
+		
+		source: false,
 
-		source: false
+		// Semantic options
+		uiOn: 'click',
+		uiAllowReselection: false,
+		uiAllowAdditions: false,
+		uiHideAdditions: true,
+		//uiAction: auto,
+		uiMinCharacters: 1,
+		uiMatch: 'both',
+		uiSelectOnKeyDown: true,
+		uiForceSelection: true,
+		uiAllowCategorySelection: false,
+		//uiPlaceholder: auto
 
 	});
 	

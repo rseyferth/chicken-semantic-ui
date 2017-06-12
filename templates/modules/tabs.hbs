@@ -1,0 +1,9 @@
+{{#if showMenu}}
+	<div class={{menuClass}}>
+		{{#each tabs as |tab|}}
+			<a class="item {{if tab.active "active" ""}}" data-tab={{tab.id}}>{{tab.title}}</a>
+		{{/each}}
+	</div>
+{{/if}}
+
+{{yield}}

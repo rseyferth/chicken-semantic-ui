@@ -4,6 +4,7 @@
 Chicken.Dom.View.TemplateCache.set('semantic-ui:addons.dropzone', '\n{{#if files}}\n\n\t<div class="ui cards">\n\t{{#each files as |file|}}\n\t\t<div class="card">\n\t\t\t{{#if file.thumbnailBase64}}\n\t\t\t\t<div class="image">\n\t\t\t\t\t<img src={{file.thumbnailBase64}}>\n\t\t\t\t</div>\n\t\t\t{{/if}}\n\t\t\t<div class="content">\n\t\t\t\n\t\t\t\t{{#unless file.complete}}\t\n\t\t\t\t\t<ui-progress value={{file.progress}} error={{file.errorMessage}}>\n\t\t\t\t\t\t<div class="bar">\n\t\t\t\t\t\t\t<div class="progress"></div>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t</ui-progress>\n\t\t\t\t{{/unless}}\n\t\t\t\t{{#if file.errorMessage}}\n\t\t\t\t\t<div class="ui error message">\n\t\t\t\t\t\t{{file.errorMessage}}\t\t\t\t\t\t\n\t\t\t\t\t</div>\n\t\t\t\t{{/if}}\n\t\t\t</div>\n\t\t\t{{#if file.complete}}\n\t\t\t<div class="ui bottom attached button" {{action "deleteFile" file}}>\n\t\t\t\t<i class="trash icon"></i>\n\t\t\t\t{{options.dictRemoveFile}}\n\t\t\t</div>\n\t\t\t{{/if}}\n\t\t</div>\n\t{{/each}}\n\t</div>\n\n{{else}}\n\t\n\t<i class="upload icon dz-message"></i>\n\n{{/if}}');
 Chicken.Dom.View.TemplateCache.set('semantic-ui:chicken.model-form', '{{yield}}\n\n{{#if error}}\n\t<div class="ui negative icon message">\n\t\t<i class="warning icon"></i>\n\t\t<div class="content">\n\t\t\t{{error}}\t\t\t\n\t\t</div>\t\t\n\t</div>\n{{/if}}\n');
 Chicken.Dom.View.TemplateCache.set('semantic-ui:modules.dropdown', '<input type="hidden">\n{{yield}}\n{{#if dropdownRecords}}\n\t<div class="menu">\n\t\t{{#each dropdownRecords as |record|}}\n\t\t<div class="item" data-value={{get record valueAttribute}}>{{get record textAttribute}}</div>\n\t\t{{/each}}\n\t</div>\n{{/if}}');
+Chicken.Dom.View.TemplateCache.set('semantic-ui:modules.tabs', '{{#if showMenu}}\n\t<div class={{menuClass}}>\n\t\t{{#each tabs as |tab|}}\n\t\t\t<a class="item {{if tab.active "active" ""}}" data-tab={{tab.id}}>{{tab.title}}</a>\n\t\t{{/each}}\n\t</div>\n{{/if}}\n\n{{yield}}');
 /** END TEMPLATES **/
 'use strict';
 
@@ -393,98 +394,6 @@ DropzoneComponent.Config = {
 };
 'use strict';
 
-window.ChickenSemantic = {
-	applyApiErrorToForm: function applyApiErrorToForm($form, apiError) {
-
-		// Loop errors
-		var errors = _.mapObject(apiError.getFormErrors(), function (messages, field) {
-
-			return messages.join(' ');
-		});
-
-		// This should work better in the future (new versions of Semantic)		
-		//$form.form('add errors', errors);
-		_.each(errors, function (message, key) {
-			$form.form('add prompt', key, message);
-		});
-	},
-	getUiOptions: function getUiOptions(component) {
-
-		return component.getAttributes('ui');
-	}
-};
-'use strict';
-
-Chicken.component('model-form', 'semantic-ui:chicken.model-form', function () {
-	var _this = this;
-
-	this.tagName = 'form';
-	this.cssClass = 'ui form';
-
-	this.defaults({});
-
-	this.when('ready', function () {
-
-		// Get validation for model
-		var formKey = _this.get('key');
-		if (!formKey) formKey = 'default';
-		var rules = _this.get('model').getValidationRules(formKey);
-		_this.$element.form({
-
-			on: 'blur',
-			inline: true,
-			fields: rules,
-			focusInvalid: true,
-
-			showLoadingIndicator: true,
-			showLoadingIndicatorAfterSuccess: false,
-
-			onSuccess: function onSuccess(event) {
-
-				event.preventDefault();
-				_this.sendAction('save');
-			}
-
-		});
-
-		// Prevent default form submission
-		_this.$element.on('submit', function (e) {
-			e.preventDefault();
-		});
-	});
-
-	this.action('save', function () {
-
-		// Set to busy
-		_this.set('error', false);
-		if (_this.get('showLoadingIndicator')) _this.$element.addClass('loading');
-
-		// Clear errors
-		_this.$element.find('.error').removeClass('error').find('.prompt').remove();
-
-		// Go and save it
-		_this.get('model').save({
-
-			uri: _this.get('uri')
-
-		}).then(function (result) {
-
-			if (!_this.get('showLoadingIndicatorAfterSuccess')) _this.$element.removeClass('loading');
-		}, function (error) {
-
-			// Check errors
-			window.ChickenSemantic.applyApiErrorToForm(_this.$element, error);
-
-			// Show the error
-			_this.set('error', error.getMessage());
-
-			// No longer loading
-			_this.$element.removeClass('loading');
-		});
-	});
-});
-'use strict';
-
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -581,6 +490,98 @@ var SemanticApiRequest = function () {
 }();
 
 ;
+'use strict';
+
+window.ChickenSemantic = {
+	applyApiErrorToForm: function applyApiErrorToForm($form, apiError) {
+
+		// Loop errors
+		var errors = _.mapObject(apiError.getFormErrors(), function (messages, field) {
+
+			return messages.join(' ');
+		});
+
+		// This should work better in the future (new versions of Semantic)		
+		//$form.form('add errors', errors);
+		_.each(errors, function (message, key) {
+			$form.form('add prompt', key, message);
+		});
+	},
+	getUiOptions: function getUiOptions(component) {
+
+		return component.getAttributes('ui');
+	}
+};
+'use strict';
+
+Chicken.component('model-form', 'semantic-ui:chicken.model-form', function () {
+	var _this = this;
+
+	this.tagName = 'form';
+	this.cssClass = 'ui form';
+
+	this.defaults({});
+
+	this.when('ready', function () {
+
+		// Get validation for model
+		var formKey = _this.get('key');
+		if (!formKey) formKey = 'default';
+		var rules = _this.get('model').getValidationRules(formKey);
+		_this.$element.form({
+
+			on: 'blur',
+			inline: true,
+			fields: rules,
+			focusInvalid: true,
+
+			showLoadingIndicator: true,
+			showLoadingIndicatorAfterSuccess: false,
+
+			onSuccess: function onSuccess(event) {
+
+				event.preventDefault();
+				_this.sendAction('save');
+			}
+
+		});
+
+		// Prevent default form submission
+		_this.$element.on('submit', function (e) {
+			e.preventDefault();
+		});
+	});
+
+	this.action('save', function () {
+
+		// Set to busy
+		_this.set('error', false);
+		if (_this.get('showLoadingIndicator')) _this.$element.addClass('loading');
+
+		// Clear errors
+		_this.$element.find('.error').removeClass('error').find('.prompt').remove();
+
+		// Go and save it
+		_this.get('model').save({
+
+			uri: _this.get('uri')
+
+		}).then(function (result) {
+
+			if (!_this.get('showLoadingIndicatorAfterSuccess')) _this.$element.removeClass('loading');
+		}, function (error) {
+
+			// Check errors
+			window.ChickenSemantic.applyApiErrorToForm(_this.$element, error);
+
+			// Show the error
+			_this.set('error', error.getMessage());
+
+			// No longer loading
+			_this.$element.removeClass('loading');
+		});
+	});
+});
 'use strict';
 
 Chicken.component('ui-menu', false, function () {
@@ -789,10 +790,20 @@ Chicken.component('ui-dropdown', 'semantic-ui:modules.dropdown', function () {
 		textAttribute: 'name',
 
 		useModelAsValue: false,
-		minCharacters: 1,
 
-		source: false
+		source: false,
 
+		// Semantic options
+		uiOn: 'click',
+		uiAllowReselection: false,
+		uiAllowAdditions: false,
+		uiHideAdditions: true,
+		//uiAction: auto,
+		uiMinCharacters: 1,
+		uiMatch: 'both',
+		uiSelectOnKeyDown: true,
+		uiForceSelection: true,
+		uiAllowCategorySelection: false
 	});
 
 	//////////
@@ -1302,5 +1313,77 @@ Chicken.component('ui-sticky', false, function () {
 	this.when('ready', function () {
 
 		_this.$element.sticky(_this.getAttributes('ui'));
+	});
+}, {});
+'use strict';
+
+Chicken.component('ui-tab', false, function () {
+
+	///////////////////
+	// Configuration //
+	///////////////////
+
+	this.cssClass = 'ui tab';
+	this.defaults({
+
+		title: 'Tab'
+
+	});
+
+	///////////////
+	// Behaviour //
+	///////////////
+
+	this.beforeRender(function () {});
+}, {});
+'use strict';
+
+Chicken.component('ui-tabs', 'semantic-ui:modules.tabs', function () {
+	var _this = this;
+
+	///////////////////
+	// Configuration //
+	///////////////////
+
+	this.defaults({
+
+		showMenu: true,
+		menuClass: 'ui tabular menu'
+
+	});
+
+	///////////////
+	// Behaviour //
+	///////////////
+
+	this.when('ready', function () {
+
+		// Index tabs
+		var tabs = new Chicken.Core.ObservableArray();
+		var active = true;
+		_.each(_this.components, function (component, id) {
+
+			// Create info
+			var info = new Chicken.Core.Observable({
+				id: id,
+				title: component.get('title'),
+				active: active
+			});
+			active = false;
+			tabs.add(info);
+
+			// Set id on the component
+			component.$element.attr('data-tab', id);
+
+			// Active?
+			if (info.get('active')) component.$element.addClass('active');
+		});
+		_this.set('tabs', tabs);
+
+		// Go!
+		_this.on('revalidate', function () {
+
+			$(_this.$element).find('.menu .item').tab();
+		});
 	});
 }, {});

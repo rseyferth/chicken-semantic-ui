@@ -1,7 +1,10 @@
 Chicken.component('ui-modal', false, function() {
+
+	///////////////////
+	// Configuration //
+	///////////////////
 	
 	this.cssClass = 'ui modal';
-
 	this.defaults({
 		uiDetachable: true,
 		uiAutofocus: true,
@@ -22,11 +25,34 @@ Chicken.component('ui-modal', false, function() {
 		overrideButtonBehaviour: false,
 
 		autoShow: false,
-		autoCenter: false
+		autoCenter: false,
+		autoCenterSelf: true,	// When I render myself, center again
+
+		// Custom template url
+		template: false
 
 	});
 
+	////////////////////////////
+	// Inject custom template //
+	////////////////////////////
+	// Get source for view
+	if (this.get('template')) {
 	
+		// Find it
+		let cache = Chicken.Dom.View.TemplateCache;
+		if (!cache.has(this.get('template'))) throw new Error(`There is no View template cached with the key "${this.get('template')}"`);
+		this.templateString = cache.get(this.get('template'));
+
+	}
+
+
+	
+
+	///////////////
+	// Behaviour //
+	///////////////
+
 	this.when('ready', () => {
 
 		// Auto-show?
@@ -50,15 +76,21 @@ Chicken.component('ui-modal', false, function() {
 
 					// Listen
 					comp.on('revalidate', () => {
-						this.refresh();
+						this.refreshIfSizeChanged();
 					});
 				});
 
 				// Refresh it
-				this.refresh();
+				this.refreshIfSizeChanged();
 				
 			});
 
+		} else if (this.get('autoCenterSelf')) {
+
+			// Watch me.
+			this.on('revalidate', () => {
+				this.refreshIfSizeChanged();
+			});
 
 		}
 
@@ -132,7 +164,11 @@ Chicken.component('ui-modal', false, function() {
 		this._denyCallback = denyCallback;
 
 		// Show it
+		this.modalIsShowing = true;
 		this.$element.modal('show');
+
+		// Fix scrolling bug.
+		$(".ui.dimmer.modals").css("overflow-y", "auto");
 
 		// Create result promise
 		return new Promise((resolve, reject) => {
@@ -143,10 +179,31 @@ Chicken.component('ui-modal', false, function() {
 	},
 
 	hide() {
+		this.modalIsShowing = false;
 		this.$element.modal('hide');
 	},
+	
 	refresh() {
-		this.$element.modal('refresh');	
+		if (this._refreshTimeout || !this.modalIsShowing) return;
+
+		this._refreshTimeout = setTimeout(() =>{
+			this.$element.modal('refresh');
+			this._refreshTimeout = false;	
+		}, 10);
+	},
+
+	refreshIfSizeChanged() {
+
+		// Not showing?
+		if (!this.modalIsShowing) return;
+
+		// Check current size
+		let currentSize = `${this.$element.width()}x${this.$element.height()}`;
+		if (currentSize !== this.previousSize) {
+			this.refresh();
+			this.previousSize = currentSize;
+		}
+
 	},
 
 	setLoading(isLoading = true) {

@@ -15,6 +15,7 @@ Chicken.component('ui-dropdown', 'semantic-ui:modules.dropdown', function() {
 
 
 		useModelAsValue: false,
+		additionModel: false,
 		
 		source: false,
 
@@ -93,15 +94,37 @@ Chicken.component('ui-dropdown', 'semantic-ui:modules.dropdown', function() {
 		// Events //
 		////////////
 
-		options.onChange = (value) => {
+		options.onChange = (value, text, $addedChoice) => {
 
 			if (this._updating) return;
-
 			if (!this.attributes.valueIsArray) {
 				
 				// Use model?
 				if (this.get('useModelAsValue')) {
-					value = this.modelMap[value];
+					
+					// Custom addition?
+					if ($addedChoice.is('.addition')) {
+
+						// Create new model instance!
+						let modelClass = this.get('additionModel');
+						if (modelClass) {
+							modelClass = Chicken.model(modelClass);
+						} else {
+							modelClass = Chicken.Data.Model;
+						}
+
+						// Create it
+						let model = new modelClass();
+						model.set(this.get('nameAttribute'), text);
+						value = model;
+
+					} else {
+
+						// Look it up
+						value = this.modelMap[value];
+
+					}
+
 				}
 
 				// Apply to value

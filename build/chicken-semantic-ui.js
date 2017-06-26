@@ -520,7 +520,11 @@ Chicken.component('model-form', 'semantic-ui:chicken.model-form', function () {
 	this.tagName = 'form';
 	this.cssClass = 'ui form';
 
-	this.defaults({});
+	this.defaults({
+
+		onSaved: false
+
+	});
 
 	this.when('ready', function () {
 
@@ -569,6 +573,8 @@ Chicken.component('model-form', 'semantic-ui:chicken.model-form', function () {
 		}).then(function (result) {
 
 			if (!_this.get('showLoadingIndicatorAfterSuccess')) _this.$element.removeClass('loading');
+
+			if (_this.get('onSaved')) _this.sendAction(_this.get('onSaved'), [result]);
 		}, function (error) {
 
 			// Check errors
@@ -790,6 +796,7 @@ Chicken.component('ui-dropdown', 'semantic-ui:modules.dropdown', function () {
 		textAttribute: 'name',
 
 		useModelAsValue: false,
+		additionModel: false,
 
 		source: false,
 
@@ -859,15 +866,34 @@ Chicken.component('ui-dropdown', 'semantic-ui:modules.dropdown', function () {
 		// Events //
 		////////////
 
-		options.onChange = function (value) {
+		options.onChange = function (value, text, $addedChoice) {
 
 			if (_this._updating) return;
-
 			if (!_this.attributes.valueIsArray) {
 
 				// Use model?
 				if (_this.get('useModelAsValue')) {
-					value = _this.modelMap[value];
+
+					// Custom addition?
+					if ($addedChoice.is('.addition')) {
+
+						// Create new model instance!
+						var modelClass = _this.get('additionModel');
+						if (modelClass) {
+							modelClass = Chicken.model(modelClass);
+						} else {
+							modelClass = Chicken.Data.Model;
+						}
+
+						// Create it
+						var model = new modelClass();
+						model.set(_this.get('nameAttribute'), text);
+						value = model;
+					} else {
+
+						// Look it up
+						value = _this.modelMap[value];
+					}
 				}
 
 				// Apply to value
@@ -979,8 +1005,11 @@ Chicken.component('ui-dropdown', 'semantic-ui:modules.dropdown', function () {
 Chicken.component('ui-modal', false, function () {
 	var _this = this;
 
-	this.cssClass = 'ui modal';
+	///////////////////
+	// Configuration //
+	///////////////////
 
+	this.cssClass = 'ui modal';
 	this.defaults({
 		uiDetachable: true,
 		uiAutofocus: true,
@@ -1001,9 +1030,29 @@ Chicken.component('ui-modal', false, function () {
 		overrideButtonBehaviour: false,
 
 		autoShow: false,
-		autoCenter: false
+		autoCenter: false,
+		autoCenterSelf: true, // When I render myself, center again
+
+		// Custom template url
+		template: false
 
 	});
+
+	////////////////////////////
+	// Inject custom template //
+	////////////////////////////
+	// Get source for view
+	if (this.get('template')) {
+
+		// Find it
+		var cache = Chicken.Dom.View.TemplateCache;
+		if (!cache.has(this.get('template'))) throw new Error('There is no View template cached with the key "' + this.get('template') + '"');
+		this.templateString = cache.get(this.get('template'));
+	}
+
+	///////////////
+	// Behaviour //
+	///////////////
 
 	this.when('ready', function () {
 
@@ -1029,14 +1078,20 @@ Chicken.component('ui-modal', false, function () {
 
 						// Listen
 						comp.on('revalidate', function () {
-							_this.refresh();
+							_this.refreshIfSizeChanged();
 						});
 					});
 
 					// Refresh it
-					_this.refresh();
+					_this.refreshIfSizeChanged();
 				});
 			})();
+		} else if (_this.get('autoCenterSelf')) {
+
+			// Watch me.
+			_this.on('revalidate', function () {
+				_this.refreshIfSizeChanged();
+			});
 		}
 	});
 }, {
@@ -1106,7 +1161,11 @@ Chicken.component('ui-modal', false, function () {
 		this._denyCallback = denyCallback;
 
 		// Show it
+		this.modalIsShowing = true;
 		this.$element.modal('show');
+
+		// Fix scrolling bug.
+		$(".ui.dimmer.modals").css("overflow-y", "auto");
 
 		// Create result promise
 		return new Promise(function (resolve, reject) {
@@ -1115,10 +1174,30 @@ Chicken.component('ui-modal', false, function () {
 		});
 	},
 	hide: function hide() {
+		this.modalIsShowing = false;
 		this.$element.modal('hide');
 	},
 	refresh: function refresh() {
-		this.$element.modal('refresh');
+		var _this4 = this;
+
+		if (this._refreshTimeout || !this.modalIsShowing) return;
+
+		this._refreshTimeout = setTimeout(function () {
+			_this4.$element.modal('refresh');
+			_this4._refreshTimeout = false;
+		}, 10);
+	},
+	refreshIfSizeChanged: function refreshIfSizeChanged() {
+
+		// Not showing?
+		if (!this.modalIsShowing) return;
+
+		// Check current size
+		var currentSize = this.$element.width() + 'x' + this.$element.height();
+		if (currentSize !== this.previousSize) {
+			this.refresh();
+			this.previousSize = currentSize;
+		}
 	},
 	setLoading: function setLoading() {
 		var isLoading = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : true;

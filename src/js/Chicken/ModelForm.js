@@ -5,7 +5,7 @@ Chicken.component('model-form', 'semantic-ui:chicken.model-form', function() {
 
 	this.defaults({
 
-
+		onSaved: false
 
 	});
 
@@ -62,6 +62,8 @@ Chicken.component('model-form', 'semantic-ui:chicken.model-form', function() {
 		}).then((result) => {
 
 			if (!this.get('showLoadingIndicatorAfterSuccess')) this.$element.removeClass('loading');
+
+			if (this.get('onSaved')) this.sendAction(this.get('onSaved'), [result]);
 
 		}, (error) => {
 

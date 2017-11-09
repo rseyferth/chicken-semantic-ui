@@ -15,6 +15,7 @@ Chicken.component('model-form', 'semantic-ui:chicken.model-form', function() {
 		// Get validation for model
 		let formKey = this.get('key');
 		if (!formKey) formKey = 'default';
+		
 		let rules = this.get('model').getValidationRules(formKey);
 		this.$element.form({ 
 

@@ -1,11 +1,101 @@
 'use strict';
 
 /** START TEMPLATES **/
+Chicken.Dom.View.TemplateCache.set('semantic-ui:addons.calendar', '<div class="ui input left icon">\n\t{{#if icon}}\n\t\t<i class={{icon}}></i>\t\n\t{{/if}}\n\t<input type="text" placeholder={{placeholder}} data-validation={{dataValidation}}>\n</div>');
 Chicken.Dom.View.TemplateCache.set('semantic-ui:addons.dropzone', '\n{{#if files}}\n\n\t<div class="ui cards">\n\t{{#each files as |file|}}\n\t\t<div class="card">\n\t\t\t{{#if file.thumbnailBase64}}\n\t\t\t\t<div class="image">\n\t\t\t\t\t<img src={{file.thumbnailBase64}}>\n\t\t\t\t</div>\n\t\t\t{{/if}}\n\t\t\t<div class="content">\n\t\t\t\n\t\t\t\t{{#unless file.complete}}\t\n\t\t\t\t\t<ui-progress value={{file.progress}} error={{file.errorMessage}}>\n\t\t\t\t\t\t<div class="bar">\n\t\t\t\t\t\t\t<div class="progress"></div>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t</ui-progress>\n\t\t\t\t{{/unless}}\n\t\t\t\t{{#if file.errorMessage}}\n\t\t\t\t\t<div class="ui error message">\n\t\t\t\t\t\t{{file.errorMessage}}\t\t\t\t\t\t\n\t\t\t\t\t</div>\n\t\t\t\t{{/if}}\n\t\t\t</div>\n\t\t\t{{#if file.complete}}\n\t\t\t<div class="ui bottom attached button" {{action "deleteFile" file}}>\n\t\t\t\t<i class="trash icon"></i>\n\t\t\t\t{{options.dictRemoveFile}}\n\t\t\t</div>\n\t\t\t{{/if}}\n\t\t</div>\n\t{{/each}}\n\t</div>\n\n{{else}}\n\t\n\t<i class="upload icon dz-message"></i>\n\n{{/if}}');
 Chicken.Dom.View.TemplateCache.set('semantic-ui:chicken.model-form', '{{yield}}\n\n{{#if error}}\n\t<div class="ui negative icon message">\n\t\t<i class="warning icon"></i>\n\t\t<div class="content">\n\t\t\t{{error}}\t\t\t\n\t\t</div>\t\t\n\t</div>\n{{/if}}\n');
 Chicken.Dom.View.TemplateCache.set('semantic-ui:modules.dropdown', '<input type="hidden">\n{{yield}}\n{{#if dropdownRecords}}\n\t<div class="menu">\n\t\t{{#each dropdownRecords as |record|}}\n\t\t<div class="item" data-value={{get record valueAttribute}}>{{get record textAttribute}}</div>\n\t\t{{/each}}\n\t</div>\n{{/if}}');
 Chicken.Dom.View.TemplateCache.set('semantic-ui:modules.tabs', '{{#if showMenu}}\n\t<div class={{menuClass}}>\n\t\t{{#each tabs as |tab|}}\n\t\t\t<a class="item {{if tab.active "active" ""}}" data-tab={{tab.id}}>{{tab.title}}</a>\n\t\t{{/each}}\n\t</div>\n{{/if}}\n\n{{yield}}');
 /** END TEMPLATES **/
+'use strict';
+
+// https://github.com/mdehoog/Semantic-UI-Calendar
+
+Chicken.component('ui-calendar', 'semantic-ui:addons.calendar', function () {
+	var _this = this;
+
+	// Configuration
+	this.cssClass = 'ui calendar';
+	this.defaults({
+
+		value: null,
+		icon: 'calendar icon',
+		placeholder: '',
+		format: 'LL',
+
+		uiType: 'datetime', // picker type, can be 'datetime', 'date', 'time', 'month', or 'year'
+		uiFirstDayOfWeek: 0, // day for first day column (0 = Sunday)
+		uiConstantHeight: true, // add rows to shorter months to keep day calendar height consistent (6 rows)
+		uiToday: false, // show a 'today/now' button at the bottom of the calendar
+		uiClosable: true, // close the popup after selecting a date/time
+		uiMonthFirst: true, // month before day when parsing/converting date from/to text
+		uiTouchReadonly: true, // set input to readonly on touch devices
+		uiInline: false, // create the calendar inline instead of inside a popup
+		uiOn: null, // when to show the popup (defaults to 'focus' for input, 'click' for others)
+		uiInitialDate: null, // date to display initially when no date is selected (null = now)
+		uiStartMode: false, // display mode to start in, can be 'year', 'month', 'day', 'hour', 'minute' (false = 'day')
+		uiMinDate: null, // minimum date/time that can be selected, dates/times before are disabled
+		uiMaxDate: null, // maximum date/time that can be selected, dates/times after are disabled
+		uiAmpm: true, // show am/pm in time mode
+		uiDisableYear: false, // disable year selection mode
+		uiDisableMonth: false, // disable month selection mode
+		uiDisableMinute: false, // disable minute selection mode
+		uiFormatInput: true, // format the input text upon input blur and module creation
+		uiStartCalendar: null, // jquery object or selector for another calendar that represents the start date of a date range
+		uiEndCalendar: null, // jquery object or selector for another calendar that represents the end date of a date range
+		uiMultiMonth: 1 // show multiple months when in 'day' mode
+
+	});
+
+	// Behaviour
+	this.when('ready', function () {
+
+		// Events
+		var options = _this.getAttributes('ui');
+		options.onChange = function (date) {
+
+			// Apply value
+			_this.set('value', moment(date));
+		};
+
+		// Localized months
+		options.text = {
+			months: moment.months(),
+			monthsShort: moment.monthsShort(),
+			days: moment.weekdaysMin()
+		};
+
+		// Formatter
+		options.formatter = {
+			date: function date(_date) {
+				return moment(_date).format(_this.get('format'));
+			},
+			dateTime: function dateTime(date) {
+				return moment(date).format(_this.get('format'));
+			}
+		};
+
+		// Create it
+		_this.$el = $(_this.$element);
+		_this.$el.calendar(options);
+
+		// Initial value?
+		if (_this.get('value')) {
+			_this.applyValue();
+		}
+		_this.observe('value', function () {
+			_this.applyValue();
+		});
+	});
+}, {
+	applyValue: function applyValue() {
+		var v = this.get('value');
+		if (!v) return;
+		if (!moment.isMoment(v)) v = moment(v);
+
+		this.$el.calendar('set date', v.toDate(), true, false);
+	}
+});
 'use strict';
 
 /**
@@ -352,17 +442,15 @@ var DropzoneComponent = Chicken.component('ui-dropzone', 'semantic-ui:addons.dro
 
 		// Single?
 		if (this.options.multiple) {
-			(function () {
 
-				// Set values
-				var values = [];
-				_this3.get('files').each(function (file) {
-					if (file.get('model')) {
-						values.push(file.get('model').get(_this3.options.modelValueAttribute));
-					}
-				});
-				_this3.set('value', values, true);
-			})();
+			// Set values
+			var values = [];
+			this.get('files').each(function (file) {
+				if (file.get('model')) {
+					values.push(file.get('model').get(_this3.options.modelValueAttribute));
+				}
+			});
+			this.set('value', values, true);
 		} else {
 
 			// Get first
@@ -531,6 +619,7 @@ Chicken.component('model-form', 'semantic-ui:chicken.model-form', function () {
 		// Get validation for model
 		var formKey = _this.get('key');
 		if (!formKey) formKey = 'default';
+
 		var rules = _this.get('model').getValidationRules(formKey);
 		_this.$element.form({
 
@@ -811,6 +900,8 @@ Chicken.component('ui-dropdown', 'semantic-ui:modules.dropdown', function () {
 		uiSelectOnKeyDown: true,
 		uiForceSelection: true,
 		uiAllowCategorySelection: false
+		//uiPlaceholder: auto
+
 	});
 
 	//////////
@@ -1063,29 +1154,27 @@ Chicken.component('ui-modal', false, function () {
 
 		// Center?
 		if (_this.get('autoCenter')) {
-			(function () {
 
-				// When revalidated
-				var knownComponents = [];
-				_this.on('revalidate', function () {
+			// When revalidated
+			var knownComponents = [];
+			_this.on('revalidate', function () {
 
-					// Check child components
-					_.each(_this.components, function (comp, key) {
+				// Check child components
+				_.each(_this.components, function (comp, key) {
 
-						// Already known?
-						if (_.contains(knownComponents, key)) return;
-						knownComponents.push(key);
+					// Already known?
+					if (_.contains(knownComponents, key)) return;
+					knownComponents.push(key);
 
-						// Listen
-						comp.on('revalidate', function () {
-							_this.refreshIfSizeChanged();
-						});
+					// Listen
+					comp.on('revalidate', function () {
+						_this.refreshIfSizeChanged();
 					});
-
-					// Refresh it
-					_this.refreshIfSizeChanged();
 				});
-			})();
+
+				// Refresh it
+				_this.refreshIfSizeChanged();
+			});
 		} else if (_this.get('autoCenterSelf')) {
 
 			// Watch me.

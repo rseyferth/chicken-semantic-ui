@@ -889,6 +889,9 @@ Chicken.component('ui-dropdown', 'semantic-ui:modules.dropdown', function () {
 
 		source: false,
 
+		onSelect: false,
+		clearAfterSelection: false,
+
 		// Semantic options
 		uiOn: 'click',
 		uiAllowReselection: false,
@@ -960,6 +963,20 @@ Chicken.component('ui-dropdown', 'semantic-ui:modules.dropdown', function () {
 		options.onChange = function (value, text, $addedChoice) {
 
 			if (_this._updating) return;
+
+			// Selected?
+			if (_this.get('onSelect')) {
+
+				// Send the action
+				_this.sendAction(_this.get('onSelect'), [value, text]);
+			}
+
+			// Clear?
+			if (_this.get('clearAfterSelection')) {
+				_this.set('value', null);
+				return;
+			}
+
 			if (!_this.attributes.valueIsArray) {
 
 				// Use model?

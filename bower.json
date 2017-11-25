@@ -19,7 +19,7 @@
   ],
   "dependencies": {
     "chickenjs": "0.*",
-    "semantic": "2.2.10",
+    "semantic": "2.2.*",
     "bootstrap-daterangepicker": "^2.1.24",
     "dropzone": "^4.3.0",
     "semantic-ui-calendar": "^0.0.8"

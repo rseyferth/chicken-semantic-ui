@@ -602,6 +602,14 @@ window.ChickenSemantic = {
 };
 'use strict';
 
+Chicken.helper('uiNumber', function (params) {
+
+	// Get value
+	var nr = parseInt(Chicken.getValue(params[0]));
+	return window.numbers[nr];
+});
+'use strict';
+
 Chicken.component('model-form', 'semantic-ui:chicken.model-form', function () {
 	var _this = this;
 

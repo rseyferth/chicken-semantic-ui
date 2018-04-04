@@ -48,17 +48,26 @@ Chicken.component('ui-dropdown', 'semantic-ui:modules.dropdown', function() {
 
 		// Collection given?
 		if (this.get('source') instanceof Chicken.Data.Collection) {
-			
-			// Render it in the view
-			this.set('dropdownRecords', this.get('source'));
 
-			// Create model map
-			if (this.get('useModelAsValue')) {
-				this.get('source').each((model) => {
-					this.modelMap[model.get(this.get('valueAttribute'))] = model;
-				});
-			}
+			// Set source
+			let updateSource = () => {
 
+				// Render it in the view
+				this.set('dropdownRecords', this.get('source'));
+				this.set('useDropdownRecords', true);
+
+				// Create model map
+				if (this.get('useModelAsValue')) {
+					this.modelMap = {};
+					this.get('source').each((model) => {
+						this.modelMap[model.get(this.get('valueAttribute'))] = model;
+					});
+				}
+
+			};
+			updateSource();
+
+		
 		}
 
 	});
@@ -149,6 +158,7 @@ Chicken.component('ui-dropdown', 'semantic-ui:modules.dropdown', function() {
 				this.set('value', value);
 
 			}
+			
 			
 		};
 		options.onAdd = (value) => {

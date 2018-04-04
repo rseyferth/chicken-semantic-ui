@@ -1,11 +1,11 @@
 'use strict';
 
 /** START TEMPLATES **/
-Chicken.Dom.View.TemplateCache.set('semantic-ui:addons.calendar', '<div class="ui input left icon">\n\t{{#if icon}}\n\t\t<i class={{icon}}></i>\t\n\t{{/if}}\n\t<input type="text" placeholder={{placeholder}} data-validation={{dataValidation}}>\n</div>');
-Chicken.Dom.View.TemplateCache.set('semantic-ui:addons.dropzone', '\n{{#if files}}\n\n\t<div class="ui cards">\n\t{{#each files as |file|}}\n\t\t<div class="card">\n\t\t\t{{#if file.thumbnailBase64}}\n\t\t\t\t<div class="image">\n\t\t\t\t\t<img src={{file.thumbnailBase64}}>\n\t\t\t\t</div>\n\t\t\t{{/if}}\n\t\t\t<div class="content">\n\t\t\t\n\t\t\t\t{{#unless file.complete}}\t\n\t\t\t\t\t<ui-progress value={{file.progress}} error={{file.errorMessage}}>\n\t\t\t\t\t\t<div class="bar">\n\t\t\t\t\t\t\t<div class="progress"></div>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t</ui-progress>\n\t\t\t\t{{/unless}}\n\t\t\t\t{{#if file.errorMessage}}\n\t\t\t\t\t<div class="ui error message">\n\t\t\t\t\t\t{{file.errorMessage}}\t\t\t\t\t\t\n\t\t\t\t\t</div>\n\t\t\t\t{{/if}}\n\t\t\t</div>\n\t\t\t{{#if file.complete}}\n\t\t\t<div class="ui bottom attached button" {{action "deleteFile" file}}>\n\t\t\t\t<i class="trash icon"></i>\n\t\t\t\t{{options.dictRemoveFile}}\n\t\t\t</div>\n\t\t\t{{/if}}\n\t\t</div>\n\t{{/each}}\n\t</div>\n\n{{else}}\n\t\n\t<i class="upload icon dz-message"></i>\n\n{{/if}}');
 Chicken.Dom.View.TemplateCache.set('semantic-ui:chicken.model-form', '{{yield}}\n\n{{#if error}}\n\t<div class="ui negative icon message">\n\t\t<i class="warning icon"></i>\n\t\t<div class="content">\n\t\t\t{{error}}\t\t\t\n\t\t</div>\t\t\n\t</div>\n{{/if}}\n');
 Chicken.Dom.View.TemplateCache.set('semantic-ui:modules.dropdown', '<input type="hidden">\n{{yield}}\n{{#if dropdownRecords}}\n\t<div class="menu">\n\t\t{{#each dropdownRecords as |record|}}\n\t\t<div class="item" data-value={{get record valueAttribute}}>{{get record textAttribute}}</div>\n\t\t{{/each}}\n\t</div>\n{{/if}}');
 Chicken.Dom.View.TemplateCache.set('semantic-ui:modules.tabs', '{{#if showMenu}}\n\t<div class={{menuClass}}>\n\t\t{{#each tabs as |tab|}}\n\t\t\t<a class="item {{if tab.active "active" ""}}" data-tab={{tab.id}}>{{tab.title}}</a>\n\t\t{{/each}}\n\t</div>\n{{/if}}\n\n{{yield}}');
+Chicken.Dom.View.TemplateCache.set('semantic-ui:addons.calendar', '<div class="ui input left icon">\n\t{{#if icon}}\n\t\t<i class={{icon}}></i>\t\n\t{{/if}}\n\t<input type="text" placeholder={{placeholder}} data-validation={{dataValidation}}>\n</div>');
+Chicken.Dom.View.TemplateCache.set('semantic-ui:addons.dropzone', '\n{{#if files}}\n\n\t<div class="ui cards">\n\t{{#each files as |file|}}\n\t\t<div class="card">\n\t\t\t{{#if file.thumbnailBase64}}\n\t\t\t\t<div class="image">\n\t\t\t\t\t<img src={{file.thumbnailBase64}}>\n\t\t\t\t</div>\n\t\t\t{{/if}}\n\t\t\t<div class="content">\n\t\t\t\n\t\t\t\t{{#unless file.complete}}\t\n\t\t\t\t\t<ui-progress value={{file.progress}} error={{file.errorMessage}}>\n\t\t\t\t\t\t<div class="bar">\n\t\t\t\t\t\t\t<div class="progress"></div>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t</ui-progress>\n\t\t\t\t{{/unless}}\n\t\t\t\t{{#if file.errorMessage}}\n\t\t\t\t\t<div class="ui error message">\n\t\t\t\t\t\t{{file.errorMessage}}\t\t\t\t\t\t\n\t\t\t\t\t</div>\n\t\t\t\t{{/if}}\n\t\t\t</div>\n\t\t\t{{#if file.complete}}\n\t\t\t<div class="ui bottom attached button" {{action "deleteFile" file}}>\n\t\t\t\t<i class="trash icon"></i>\n\t\t\t\t{{options.dictRemoveFile}}\n\t\t\t</div>\n\t\t\t{{/if}}\n\t\t</div>\n\t{{/each}}\n\t</div>\n\n{{else}}\n\t\n\t<i class="upload icon dz-message"></i>\n\n{{/if}}');
 /** END TEMPLATES **/
 'use strict';
 
@@ -925,15 +925,22 @@ Chicken.component('ui-dropdown', 'semantic-ui:modules.dropdown', function () {
 		// Collection given?
 		if (_this.get('source') instanceof Chicken.Data.Collection) {
 
-			// Render it in the view
-			_this.set('dropdownRecords', _this.get('source'));
+			// Set source
+			var updateSource = function updateSource() {
 
-			// Create model map
-			if (_this.get('useModelAsValue')) {
-				_this.get('source').each(function (model) {
-					_this.modelMap[model.get(_this.get('valueAttribute'))] = model;
-				});
-			}
+				// Render it in the view
+				_this.set('dropdownRecords', _this.get('source'));
+				_this.set('useDropdownRecords', true);
+
+				// Create model map
+				if (_this.get('useModelAsValue')) {
+					_this.modelMap = {};
+					_this.get('source').each(function (model) {
+						_this.modelMap[model.get(_this.get('valueAttribute'))] = model;
+					});
+				}
+			};
+			updateSource();
 		}
 	});
 
@@ -1476,6 +1483,79 @@ Chicken.component('ui-radio', false, function () {
 		_this.observe('value', applyValue);
 		applyValue();
 	});
+});
+'use strict';
+
+Chicken.component('ui-rating', false, function () {
+    var _this = this;
+
+    //  ██████╗ ██████╗ ███╗   ██╗███████╗██╗ ██████╗ ██╗   ██╗██████╗  █████╗ ████████╗██╗ ██████╗ ███╗   ██╗
+    // ██╔════╝██╔═══██╗████╗  ██║██╔════╝██║██╔════╝ ██║   ██║██╔══██╗██╔══██╗╚══██╔══╝██║██╔═══██╗████╗  ██║
+    // ██║     ██║   ██║██╔██╗ ██║█████╗  ██║██║  ███╗██║   ██║██████╔╝███████║   ██║   ██║██║   ██║██╔██╗ ██║
+    // ██║     ██║   ██║██║╚██╗██║██╔══╝  ██║██║   ██║██║   ██║██╔══██╗██╔══██║   ██║   ██║██║   ██║██║╚██╗██║
+    // ╚██████╗╚██████╔╝██║ ╚████║██║     ██║╚██████╔╝╚██████╔╝██║  ██║██║  ██║   ██║   ██║╚██████╔╝██║ ╚████║
+    //  ╚═════╝ ╚═════╝ ╚═╝  ╚═══╝╚═╝     ╚═╝ ╚═════╝  ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝   ╚═╝   ╚═╝ ╚═════╝ ╚═╝  ╚═══╝
+    //                                                                                                        
+
+    this.cssClass = 'ui rating';
+    this.defaults({
+
+        value: null,
+
+        uiInitialRating: 0,
+        uiFireOnInit: false,
+        uiClearable: 'auto',
+        uiInteractive: true,
+
+        uiMaxRating: 5
+
+    });
+
+    // ██████╗ ███████╗██╗  ██╗ █████╗ ██╗   ██╗██╗ ██████╗ ██╗   ██╗██████╗ 
+    // ██╔══██╗██╔════╝██║  ██║██╔══██╗██║   ██║██║██╔═══██╗██║   ██║██╔══██╗
+    // ██████╔╝█████╗  ███████║███████║██║   ██║██║██║   ██║██║   ██║██████╔╝
+    // ██╔══██╗██╔══╝  ██╔══██║██╔══██║╚██╗ ██╔╝██║██║   ██║██║   ██║██╔══██╗
+    // ██████╔╝███████╗██║  ██║██║  ██║ ╚████╔╝ ██║╚██████╔╝╚██████╔╝██║  ██║
+    // ╚═════╝ ╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝  ╚═══╝  ╚═╝ ╚═════╝  ╚═════╝ ╚═╝  ╚═╝
+    //                                                                       
+
+    this.when('ready', function () {
+
+        // Prepare options
+        var options = _this.getAttributes('ui');
+
+        // On rate
+        options.onRate = function (v) {
+
+            // Set value
+            if (v !== _this.get('value')) {
+                _this.set('value', v);
+            }
+        };
+
+        // Create.
+        _this.$element.rating(options);
+
+        // Observe value
+        _this.observe('value', function () {
+            _this.applyValue();
+        });
+        _this.applyValue();
+    });
+}, {
+    applyValue: function applyValue() {
+
+        // Do we have a value?
+        var newValue = this.get('value');
+        if (newValue === undefined) newValue = 0;
+        var oldValue = this.$element.rating('get rating');
+
+        // Changed?
+        if (oldValue === newValue) return;
+
+        // Apply
+        this.$element.rating('set rating', newValue);
+    }
 });
 'use strict';
 

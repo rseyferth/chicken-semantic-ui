@@ -12,7 +12,7 @@ Chicken.component('ui-calendar', 'semantic-ui:addons.calendar', function() {
 		format: 'LL',
 
 		uiType: 'datetime',     // picker type, can be 'datetime', 'date', 'time', 'month', or 'year'
-		uiFirstDayOfWeek: 0,    // day for first day column (0 = Sunday)
+		uiFirstDayOfWeek: 1,    // day for first day column (0 = Sunday)
 		uiConstantHeight: true, // add rows to shorter months to keep day calendar height consistent (6 rows)
 		uiToday: false,         // show a 'today/now' button at the bottom of the calendar
 		uiClosable: true,       // close the popup after selecting a date/time
@@ -24,7 +24,7 @@ Chicken.component('ui-calendar', 'semantic-ui:addons.calendar', function() {
 		uiStartMode: false,     // display mode to start in, can be 'year', 'month', 'day', 'hour', 'minute' (false = 'day')
 		uiMinDate: null,        // minimum date/time that can be selected, dates/times before are disabled
 		uiMaxDate: null,        // maximum date/time that can be selected, dates/times after are disabled
-		uiAmpm: true,           // show am/pm in time mode
+		uiAmpm: false,           // show am/pm in time mode
 		uiDisableYear: false,   // disable year selection mode
 		uiDisableMonth: false,  // disable month selection mode
 		uiDisableMinute: false, // disable minute selection mode

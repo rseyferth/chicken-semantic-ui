@@ -257,12 +257,12 @@ Chicken.component('ui-dropdown', 'semantic-ui:modules.dropdown', function() {
 
 				// Get info from the model
 				$el.dropdown('set text', value.get(this.get('textAttribute')));
-				$el.dropdown('set value', value.get(this.get('valueAttribute')));				
+				$el.dropdown('set value', value.get(this.get('valueAttribute')));
 
 			} else {
 
 				// Apply
-				$el.dropdown('set exactly', value);
+				$el.dropdown('set exactly', `${value}`);
 
 			}
 

@@ -1,11 +1,11 @@
 'use strict';
 
 /** START TEMPLATES **/
+Chicken.Dom.View.TemplateCache.set('semantic-ui:addons.calendar', '<div class="ui input left icon">\n\t{{#if icon}}\n\t\t<i class={{icon}}></i>\t\n\t{{/if}}\n\t<input type="text" placeholder={{placeholder}} data-validation={{dataValidation}}>\n</div>');
+Chicken.Dom.View.TemplateCache.set('semantic-ui:addons.dropzone', '\n{{#if files}}\n\n\t<div class="ui cards">\n\t{{#each files as |file|}}\n\t\t<div class="card">\n\t\t\t{{#if file.thumbnailBase64}}\n\t\t\t\t<div class="image">\n\t\t\t\t\t<img src={{file.thumbnailBase64}}>\n\t\t\t\t</div>\n\t\t\t{{/if}}\n\t\t\t<div class="content">\n\t\t\t\n\t\t\t\t{{#unless file.complete}}\t\n\t\t\t\t\t<ui-progress value={{file.progress}} error={{file.errorMessage}}>\n\t\t\t\t\t\t<div class="bar">\n\t\t\t\t\t\t\t<div class="progress"></div>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t</ui-progress>\n\t\t\t\t{{/unless}}\n\t\t\t\t{{#if file.errorMessage}}\n\t\t\t\t\t<div class="ui error message">\n\t\t\t\t\t\t{{file.errorMessage}}\t\t\t\t\t\t\n\t\t\t\t\t</div>\n\t\t\t\t{{/if}}\n\t\t\t</div>\n\t\t\t{{#if file.complete}}\n\t\t\t<div class="ui bottom attached button" {{action "deleteFile" file}}>\n\t\t\t\t<i class="trash icon"></i>\n\t\t\t\t{{options.dictRemoveFile}}\n\t\t\t</div>\n\t\t\t{{/if}}\n\t\t</div>\n\t{{/each}}\n\t</div>\n\n{{else}}\n\t\n\t<i class="upload icon dz-message"></i>\n\n{{/if}}');
 Chicken.Dom.View.TemplateCache.set('semantic-ui:chicken.model-form', '{{yield}}\n\n{{#if error}}\n\t<div class="ui negative icon message">\n\t\t<i class="warning icon"></i>\n\t\t<div class="content">\n\t\t\t{{error}}\t\t\t\n\t\t</div>\t\t\n\t</div>\n{{/if}}\n');
 Chicken.Dom.View.TemplateCache.set('semantic-ui:modules.dropdown', '<input type="hidden">\n{{yield}}\n{{#if dropdownRecords}}\n\t<div class="menu">\n\t\t{{#each dropdownRecords as |record|}}\n\t\t<div class="item" data-value={{get record valueAttribute}}>{{get record textAttribute}}</div>\n\t\t{{/each}}\n\t</div>\n{{/if}}');
 Chicken.Dom.View.TemplateCache.set('semantic-ui:modules.tabs', '{{#if showMenu}}\n\t<div class={{menuClass}}>\n\t\t{{#each tabs as |tab|}}\n\t\t\t<a class="item {{if tab.active "active" ""}}" data-tab={{tab.id}}>{{tab.title}}</a>\n\t\t{{/each}}\n\t</div>\n{{/if}}\n\n{{yield}}');
-Chicken.Dom.View.TemplateCache.set('semantic-ui:addons.calendar', '<div class="ui input left icon">\n\t{{#if icon}}\n\t\t<i class={{icon}}></i>\t\n\t{{/if}}\n\t<input type="text" placeholder={{placeholder}} data-validation={{dataValidation}}>\n</div>');
-Chicken.Dom.View.TemplateCache.set('semantic-ui:addons.dropzone', '\n{{#if files}}\n\n\t<div class="ui cards">\n\t{{#each files as |file|}}\n\t\t<div class="card">\n\t\t\t{{#if file.thumbnailBase64}}\n\t\t\t\t<div class="image">\n\t\t\t\t\t<img src={{file.thumbnailBase64}}>\n\t\t\t\t</div>\n\t\t\t{{/if}}\n\t\t\t<div class="content">\n\t\t\t\n\t\t\t\t{{#unless file.complete}}\t\n\t\t\t\t\t<ui-progress value={{file.progress}} error={{file.errorMessage}}>\n\t\t\t\t\t\t<div class="bar">\n\t\t\t\t\t\t\t<div class="progress"></div>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t</ui-progress>\n\t\t\t\t{{/unless}}\n\t\t\t\t{{#if file.errorMessage}}\n\t\t\t\t\t<div class="ui error message">\n\t\t\t\t\t\t{{file.errorMessage}}\t\t\t\t\t\t\n\t\t\t\t\t</div>\n\t\t\t\t{{/if}}\n\t\t\t</div>\n\t\t\t{{#if file.complete}}\n\t\t\t<div class="ui bottom attached button" {{action "deleteFile" file}}>\n\t\t\t\t<i class="trash icon"></i>\n\t\t\t\t{{options.dictRemoveFile}}\n\t\t\t</div>\n\t\t\t{{/if}}\n\t\t</div>\n\t{{/each}}\n\t</div>\n\n{{else}}\n\t\n\t<i class="upload icon dz-message"></i>\n\n{{/if}}');
 /** END TEMPLATES **/
 'use strict';
 
@@ -24,7 +24,7 @@ Chicken.component('ui-calendar', 'semantic-ui:addons.calendar', function () {
 		format: 'LL',
 
 		uiType: 'datetime', // picker type, can be 'datetime', 'date', 'time', 'month', or 'year'
-		uiFirstDayOfWeek: 0, // day for first day column (0 = Sunday)
+		uiFirstDayOfWeek: 1, // day for first day column (0 = Sunday)
 		uiConstantHeight: true, // add rows to shorter months to keep day calendar height consistent (6 rows)
 		uiToday: false, // show a 'today/now' button at the bottom of the calendar
 		uiClosable: true, // close the popup after selecting a date/time
@@ -36,7 +36,7 @@ Chicken.component('ui-calendar', 'semantic-ui:addons.calendar', function () {
 		uiStartMode: false, // display mode to start in, can be 'year', 'month', 'day', 'hour', 'minute' (false = 'day')
 		uiMinDate: null, // minimum date/time that can be selected, dates/times before are disabled
 		uiMaxDate: null, // maximum date/time that can be selected, dates/times after are disabled
-		uiAmpm: true, // show am/pm in time mode
+		uiAmpm: false, // show am/pm in time mode
 		uiDisableYear: false, // disable year selection mode
 		uiDisableMonth: false, // disable month selection mode
 		uiDisableMinute: false, // disable minute selection mode
@@ -580,6 +580,80 @@ var SemanticApiRequest = function () {
 ;
 'use strict';
 
+Chicken.component('ui-menu', false, function () {
+	var _this = this;
+
+	///////////////////
+	// Configuration //
+	///////////////////
+
+	this.defaults({
+
+		value: false
+
+	});
+
+	///////////////
+	// Behaviour //
+	///////////////
+
+	this.when('ready', function () {
+
+		// Index items
+		_this.indexItems();
+
+		// Selection!
+		_this.observe('value', function () {
+
+			// Apply selected
+			_this.applyValue();
+		});
+		_this.applyValue();
+	});
+}, {
+
+	////////////////////
+	// Public methods //
+	////////////////////
+
+	indexItems: function indexItems() {
+		var _this2 = this;
+
+		// Find items
+		this.items = [];
+		this.$items = $(this.$element).find('.item').each(function (index, el) {
+
+			// Add it
+			var $el = $(el);
+			_this2.items.push({
+				$element: $el,
+				value: _this2._getValue($el)
+			});
+		});
+
+		// Click event
+		this.$items.on('click', function (e) {
+			e.preventDefault();
+
+			// Get value
+			_this2.set('value', _this2._getValue($(e.target)));
+		});
+	},
+	applyValue: function applyValue() {
+		var _this3 = this;
+
+		// Toggle item activeness
+		_.each(this.items, function (item) {
+
+			item.$element.toggleClass('active', item.value === _this3.get('value'));
+		});
+	},
+	_getValue: function _getValue($el) {
+		return $el.data('value') || $el.text();
+	}
+});
+'use strict';
+
 window.ChickenSemantic = {
 	applyApiErrorToForm: function applyApiErrorToForm($form, apiError) {
 
@@ -684,80 +758,6 @@ Chicken.component('model-form', 'semantic-ui:chicken.model-form', function () {
 			_this.$element.removeClass('loading');
 		});
 	});
-});
-'use strict';
-
-Chicken.component('ui-menu', false, function () {
-	var _this = this;
-
-	///////////////////
-	// Configuration //
-	///////////////////
-
-	this.defaults({
-
-		value: false
-
-	});
-
-	///////////////
-	// Behaviour //
-	///////////////
-
-	this.when('ready', function () {
-
-		// Index items
-		_this.indexItems();
-
-		// Selection!
-		_this.observe('value', function () {
-
-			// Apply selected
-			_this.applyValue();
-		});
-		_this.applyValue();
-	});
-}, {
-
-	////////////////////
-	// Public methods //
-	////////////////////
-
-	indexItems: function indexItems() {
-		var _this2 = this;
-
-		// Find items
-		this.items = [];
-		this.$items = $(this.$element).find('.item').each(function (index, el) {
-
-			// Add it
-			var $el = $(el);
-			_this2.items.push({
-				$element: $el,
-				value: _this2._getValue($el)
-			});
-		});
-
-		// Click event
-		this.$items.on('click', function (e) {
-			e.preventDefault();
-
-			// Get value
-			_this2.set('value', _this2._getValue($(e.target)));
-		});
-	},
-	applyValue: function applyValue() {
-		var _this3 = this;
-
-		// Toggle item activeness
-		_.each(this.items, function (item) {
-
-			item.$element.toggleClass('active', item.value === _this3.get('value'));
-		});
-	},
-	_getValue: function _getValue($el) {
-		return $el.data('value') || $el.text();
-	}
 });
 'use strict';
 
@@ -1112,7 +1112,7 @@ Chicken.component('ui-dropdown', 'semantic-ui:modules.dropdown', function () {
 			} else {
 
 				// Apply
-				$el.dropdown('set exactly', value);
+				$el.dropdown('set exactly', '' + value);
 			}
 
 			_this._updating = false;

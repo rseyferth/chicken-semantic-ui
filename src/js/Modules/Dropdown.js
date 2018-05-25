@@ -98,18 +98,17 @@ Chicken.component('ui-dropdown', 'semantic-ui:modules.dropdown', function() {
 		this.multiple = this.$element.is('.multiple');
 		
 
-		// Prevent observer-loops
-		this._updating = false;
-
-
+		
 		////////////
 		// Events //
 		////////////
 
 		options.onChange = (value, text, $addedChoice) => {
 
+			// Same as last?
 			if (this._updating) return;
-
+			if (value === this.get('value')) return;
+			
 			// Selected?
 			if (this.get('onSelect')) {
 
@@ -124,7 +123,7 @@ Chicken.component('ui-dropdown', 'semantic-ui:modules.dropdown', function() {
 				return;
 			}
 
-			if (!this.attributes.valueIsArray) {
+			if (!this.get('valueIsArray') && $addedChoice) {
 				
 				// Use model?
 				if (this.get('useModelAsValue')) {
@@ -163,20 +162,29 @@ Chicken.component('ui-dropdown', 'semantic-ui:modules.dropdown', function() {
 		};
 		options.onAdd = (value) => {
 
-			if (this._updating) return;
-			if (this.attributes.valueIsArray) {
+			if (this.get('valueIsArray')) {
+			
+				// Initialized array?
 				if (!this.get('value')) {
+					
+					// Create observable array
 					this.set('value', [], true);
+
 				} else if (!(this.get('value') instanceof Chicken.Core.ObservableArray)) {
+
+					// Make it into an observable array
 					this.set('value', new Chicken.Core.ObservableArray(this.get('value')));
+
 				}
+
+				// Add the new value
 				this.get('value').add(value);
+
 			}
 
 		};
 		options.onRemove = (value) => {
 
-			if (this._updating) return;
 			if (this.attributes.valueIsArray) {
 				this.get('value').delete(value);
 			}
@@ -246,12 +254,29 @@ Chicken.component('ui-dropdown', 'semantic-ui:modules.dropdown', function() {
 		let applyValue = () => {
 			
 			// Get value
-			this._updating = true;		// To prevent feedback loop
 			let value = this.get('value');
 			if (this.attributes.valueIsArray && value && value.toArray) {
 				value = value.toArray();
 			}
 
+			// Same as current?
+			let oldValue = $el.dropdown('get value');
+			if (this.get('valueIsArray')) {
+				
+				// Compare arrays
+				oldValue = oldValue.split(/,/);
+				if (_.intersection(oldValue, value).length === oldValue.length) return;
+
+			} else {
+
+				// Compare textually
+				if (oldValue === value) return;
+				
+			}
+
+			// Updating
+			this._updating = true;
+			
 			// Is it a model not in the map?
 			if (value instanceof Chicken.Data.Model) {
 
@@ -261,11 +286,15 @@ Chicken.component('ui-dropdown', 'semantic-ui:modules.dropdown', function() {
 
 			} else {
 
+				// Not an array?
+				if (!this.get('valueIsArray')) value = `${value}`;
+
 				// Apply
-				$el.dropdown('set exactly', `${value}`);
+				$el.dropdown('set exactly', value);
 
 			}
 
+			// Done.
 			this._updating = false;
 
 		};

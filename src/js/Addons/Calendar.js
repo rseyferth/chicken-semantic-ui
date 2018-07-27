@@ -37,7 +37,6 @@ Chicken.component('ui-calendar', 'semantic-ui:addons.calendar', function() {
 
 	// Behaviour
 	this.when('ready', () => {
-
 		
 		// Events
 		let options = this.getAttributes('ui');
@@ -54,6 +53,13 @@ Chicken.component('ui-calendar', 'semantic-ui:addons.calendar', function() {
 			monthsShort: moment.monthsShort(),
 			days: moment.weekdaysMin()
 		};
+
+		// Moments?
+		_.each(options, (value, key) => {
+			if (moment.isMoment(value)) {
+				options[key] = value.toDate();
+			}
+		});
 
 		
 		// Formatter

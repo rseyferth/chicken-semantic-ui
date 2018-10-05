@@ -241,8 +241,8 @@ Chicken.component('ui-dropdown', 'semantic-ui:modules.dropdown', function() {
 		// Create it //
 		///////////////
 		
+		$el = $($el);
 		$el.dropdown(options);
-		
 		
 
 

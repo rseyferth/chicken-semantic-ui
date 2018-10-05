@@ -585,6 +585,8 @@ var SemanticApiRequest = function () {
 }();
 
 ;
+
+module.exports = SemanticApiRequest;
 'use strict';
 
 window.ChickenSemantic = {
@@ -1100,6 +1102,7 @@ Chicken.component('ui-dropdown', 'semantic-ui:modules.dropdown', function () {
 		// Create it //
 		///////////////
 
+		$el = $($el);
 		$el.dropdown(options);
 
 		////////////////////////////////

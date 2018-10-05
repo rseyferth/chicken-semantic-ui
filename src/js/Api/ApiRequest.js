@@ -91,3 +91,5 @@ class SemanticApiRequest
 
 
 };
+
+module.exports = SemanticApiRequest

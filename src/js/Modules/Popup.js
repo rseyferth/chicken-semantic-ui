@@ -36,7 +36,9 @@ Chicken.component('ui-popup', false, function() {
 		uiTarget: false,
 		uiDistanceAway: 0,
 		uiOffset: 0,
-		uiMaxSearchDepth: 10
+		uiMaxSearchDepth: 10,
+
+		content: false
 
 	});
 
@@ -52,6 +54,10 @@ Chicken.component('ui-popup', false, function() {
 		/*options.onShow = (...args) => {
 			
 		};*/
+		// Content set?
+		if (this.get('content')) {
+			this.$element.data('content', this.get('content'));
+		}
 
 		this.$element.popup(options);
 

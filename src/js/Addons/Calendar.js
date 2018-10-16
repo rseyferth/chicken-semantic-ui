@@ -1,5 +1,4 @@
 // https://github.com/mdehoog/Semantic-UI-Calendar
-
 Chicken.component('ui-calendar', 'semantic-ui:addons.calendar', function() {
 
 	// Configuration
@@ -43,7 +42,8 @@ Chicken.component('ui-calendar', 'semantic-ui:addons.calendar', function() {
 		options.onChange = (date) => {
 
 			// Apply value
-			this.set('value', moment(date));
+			let parts = [date.getFullYear(), date.getMonth(), date.getDate(), date.getHours(), date.getMinutes(), date.getSeconds()];
+			this.set('value', moment(parts));
 
 		};
 		
@@ -60,15 +60,15 @@ Chicken.component('ui-calendar', 'semantic-ui:addons.calendar', function() {
 				options[key] = value.toDate();
 			}
 		});
-
 		
 		// Formatter
 		options.formatter = {
 			date: (date) => {
-				return moment(date).format(this.get('format'));
+				let parts = [date.getFullYear(), date.getMonth(), date.getDate()];
+				return moment.utc(parts).format(this.get('format'));
 			},
 			dateTime: (date) => {
-				return moment(date).format(this.get('format'));
+				return moment(date);
 			}
 		};
 
@@ -90,10 +90,15 @@ Chicken.component('ui-calendar', 'semantic-ui:addons.calendar', function() {
 }, {
 
 	applyValue() {
+
 		let v = this.get('value');
 		if (!v) return;
 		if (!moment.isMoment(v)) v = moment(v);
 		
+		let curDate = this.$el.calendar('get date');
+		if (v.unix() === moment(curDate).unix()) return;
+
+		// Apply value
 		this.$el.calendar('set date', v.toDate(), true, false);
 
 	}

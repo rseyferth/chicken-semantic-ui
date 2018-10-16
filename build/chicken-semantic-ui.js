@@ -1,16 +1,15 @@
 'use strict';
 
 /** START TEMPLATES **/
-Chicken.Dom.View.TemplateCache.set('semantic-ui:chicken.model-form', '{{yield}}\n\n{{#if error}}\n\t<div class="ui negative icon message">\n\t\t<i class="warning icon"></i>\n\t\t<div class="content">\n\t\t\t{{error}}\t\t\t\n\t\t</div>\t\t\n\t</div>\n{{/if}}\n');
 Chicken.Dom.View.TemplateCache.set('semantic-ui:addons.calendar', '<div class="ui input left icon">\n\t{{#if icon}}\n\t\t<i class={{icon}}></i>\t\n\t{{/if}}\n\t<input type="text" placeholder={{placeholder}} readonly="readonly" data-validation={{dataValidation}}>\n</div>');
 Chicken.Dom.View.TemplateCache.set('semantic-ui:addons.dropzone', '\n{{#if files}}\n\n\t<div class="ui cards">\n\t{{#each files as |file|}}\n\t\t<div class="card">\n\t\t\t{{#if file.thumbnailBase64}}\n\t\t\t\t<div class="image">\n\t\t\t\t\t<img src={{file.thumbnailBase64}}>\n\t\t\t\t</div>\n\t\t\t{{/if}}\n\t\t\t<div class="content">\n\t\t\t\n\t\t\t\t{{#unless file.complete}}\t\n\t\t\t\t\t<ui-progress value={{file.progress}} error={{file.errorMessage}}>\n\t\t\t\t\t\t<div class="bar">\n\t\t\t\t\t\t\t<div class="progress"></div>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t</ui-progress>\n\t\t\t\t{{/unless}}\n\t\t\t\t{{#if file.errorMessage}}\n\t\t\t\t\t<div class="ui error message">\n\t\t\t\t\t\t{{file.errorMessage}}\t\t\t\t\t\t\n\t\t\t\t\t</div>\n\t\t\t\t{{/if}}\n\t\t\t</div>\n\t\t\t{{#if file.complete}}\n\t\t\t<div class="ui bottom attached button" {{action "deleteFile" file}}>\n\t\t\t\t<i class="trash icon"></i>\n\t\t\t\t{{options.dictRemoveFile}}\n\t\t\t</div>\n\t\t\t{{/if}}\n\t\t</div>\n\t{{/each}}\n\t</div>\n\n{{else}}\n\t\n\t<i class="upload icon dz-message"></i>\n\n{{/if}}');
+Chicken.Dom.View.TemplateCache.set('semantic-ui:chicken.model-form', '{{yield}}\n\n{{#if error}}\n\t<div class="ui negative icon message">\n\t\t<i class="warning icon"></i>\n\t\t<div class="content">\n\t\t\t{{error}}\t\t\t\n\t\t</div>\t\t\n\t</div>\n{{/if}}\n');
 Chicken.Dom.View.TemplateCache.set('semantic-ui:modules.dropdown', '<input type="hidden">\n{{yield}}\n{{#if dropdownRecords}}\n\t<div class="menu">\n\t\t{{#each dropdownRecords as |record|}}\n\t\t<div class="item" data-value={{get record valueAttribute}}>{{get record textAttribute}}</div>\n\t\t{{/each}}\n\t</div>\n{{/if}}');
 Chicken.Dom.View.TemplateCache.set('semantic-ui:modules.tabs', '{{#if showMenu}}\n\t<div class={{menuClass}}>\n\t\t{{#each tabs as |tab|}}\n\t\t\t<a class="item {{if tab.active "active" ""}}" data-tab={{tab.id}}>{{tab.title}}</a>\n\t\t{{/each}}\n\t</div>\n{{/if}}\n\n{{yield}}');
 /** END TEMPLATES **/
 'use strict';
 
 // https://github.com/mdehoog/Semantic-UI-Calendar
-
 Chicken.component('ui-calendar', 'semantic-ui:addons.calendar', function () {
 	var _this = this;
 
@@ -55,7 +54,8 @@ Chicken.component('ui-calendar', 'semantic-ui:addons.calendar', function () {
 		options.onChange = function (date) {
 
 			// Apply value
-			_this.set('value', moment(date));
+			var parts = [date.getFullYear(), date.getMonth(), date.getDate(), date.getHours(), date.getMinutes(), date.getSeconds()];
+			_this.set('value', moment(parts));
 		};
 
 		// Localized months
@@ -75,10 +75,11 @@ Chicken.component('ui-calendar', 'semantic-ui:addons.calendar', function () {
 		// Formatter
 		options.formatter = {
 			date: function date(_date) {
-				return moment(_date).format(_this.get('format'));
+				var parts = [_date.getFullYear(), _date.getMonth(), _date.getDate()];
+				return moment.utc(parts).format(_this.get('format'));
 			},
 			dateTime: function dateTime(date) {
-				return moment(date).format(_this.get('format'));
+				return moment(date);
 			}
 		};
 
@@ -96,10 +97,15 @@ Chicken.component('ui-calendar', 'semantic-ui:addons.calendar', function () {
 	});
 }, {
 	applyValue: function applyValue() {
+
 		var v = this.get('value');
 		if (!v) return;
 		if (!moment.isMoment(v)) v = moment(v);
 
+		var curDate = this.$el.calendar('get date');
+		if (v.unix() === moment(curDate).unix()) return;
+
+		// Apply value
 		this.$el.calendar('set date', v.toDate(), true, false);
 	}
 });
@@ -489,6 +495,106 @@ DropzoneComponent.Config = {
 };
 'use strict';
 
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var SemanticApiRequest = function () {
+	function SemanticApiRequest(api, uri) {
+		_classCallCheck(this, SemanticApiRequest);
+
+		this.api = api;
+		this.uri = uri;
+
+		this.auth = null;
+	}
+
+	_createClass(SemanticApiRequest, [{
+		key: 'toSemantic',
+		value: function toSemantic() {
+			var _this = this;
+
+			var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+
+
+			// Basics
+			var apiOptions = {
+				url: this.api.makeUrl(this.uri)
+			};
+
+			// Check auth
+			var auth = this.auth ? this.auth : this.api.getAuth();
+			if (auth) {
+				var ajaxOptions = auth.getAjaxOptions();
+				if (ajaxOptions.beforeSend) {
+					apiOptions.beforeXHR = ajaxOptions.beforeSend;
+				}
+			}
+
+			// Parse response
+			apiOptions.onResponse = function (response) {
+
+				return _this._convertApiResponse(response);
+			};
+
+			// Combine
+			$.extend(apiOptions, options);
+
+			// Done
+			return apiOptions;
+		}
+	}, {
+		key: 'convertResponse',
+		value: function convertResponse(callback) {
+			this.convertResponseCallback = callback;
+			return this;
+		}
+	}, {
+		key: '_convertApiResponse',
+		value: function _convertApiResponse(response) {
+
+			// Fake api call
+			var apiCall = new Chicken.Api.ApiCall(this.api, 'get', '/');
+
+			// Parse it
+			var data = this.api.deserialize(response, apiCall);
+
+			// Map to semantic format
+			var result = {
+				success: true
+			};
+
+			// Conversion defined?
+			if (this.convertResponseCallback) {
+
+				// Convert it
+				result.results = this.convertResponseCallback.apply(this, [data]);
+			} else {
+
+				// Collection or model?
+				if (data instanceof Chicken.Data.Model) {
+
+					// To object
+					result.results = data.toObject();
+				} else {
+
+					// To array
+					result.results = data.toArray();
+				}
+			}
+
+			return result;
+		}
+	}]);
+
+	return SemanticApiRequest;
+}();
+
+;
+
+module.exports = SemanticApiRequest;
+'use strict';
+
 window.ChickenSemantic = {
 	applyApiErrorToForm: function applyApiErrorToForm($form, apiError) {
 
@@ -594,106 +700,6 @@ Chicken.component('model-form', 'semantic-ui:chicken.model-form', function () {
 		});
 	});
 });
-'use strict';
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-var SemanticApiRequest = function () {
-	function SemanticApiRequest(api, uri) {
-		_classCallCheck(this, SemanticApiRequest);
-
-		this.api = api;
-		this.uri = uri;
-
-		this.auth = null;
-	}
-
-	_createClass(SemanticApiRequest, [{
-		key: 'toSemantic',
-		value: function toSemantic() {
-			var _this = this;
-
-			var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-
-
-			// Basics
-			var apiOptions = {
-				url: this.api.makeUrl(this.uri)
-			};
-
-			// Check auth
-			var auth = this.auth ? this.auth : this.api.getAuth();
-			if (auth) {
-				var ajaxOptions = auth.getAjaxOptions();
-				if (ajaxOptions.beforeSend) {
-					apiOptions.beforeXHR = ajaxOptions.beforeSend;
-				}
-			}
-
-			// Parse response
-			apiOptions.onResponse = function (response) {
-
-				return _this._convertApiResponse(response);
-			};
-
-			// Combine
-			$.extend(apiOptions, options);
-
-			// Done
-			return apiOptions;
-		}
-	}, {
-		key: 'convertResponse',
-		value: function convertResponse(callback) {
-			this.convertResponseCallback = callback;
-			return this;
-		}
-	}, {
-		key: '_convertApiResponse',
-		value: function _convertApiResponse(response) {
-
-			// Fake api call
-			var apiCall = new Chicken.Api.ApiCall(this.api, 'get', '/');
-
-			// Parse it
-			var data = this.api.deserialize(response, apiCall);
-
-			// Map to semantic format
-			var result = {
-				success: true
-			};
-
-			// Conversion defined?
-			if (this.convertResponseCallback) {
-
-				// Convert it
-				result.results = this.convertResponseCallback.apply(this, [data]);
-			} else {
-
-				// Collection or model?
-				if (data instanceof Chicken.Data.Model) {
-
-					// To object
-					result.results = data.toObject();
-				} else {
-
-					// To array
-					result.results = data.toArray();
-				}
-			}
-
-			return result;
-		}
-	}]);
-
-	return SemanticApiRequest;
-}();
-
-;
-
-module.exports = SemanticApiRequest;
 'use strict';
 
 Chicken.component('ui-menu', false, function () {

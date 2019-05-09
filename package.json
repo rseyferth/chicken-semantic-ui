@@ -1,6 +1,6 @@
 {
   "name": "chicken-semantic-ui",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "",
   "main": "build/chicken-semantic-ui.js",
   "scripts": {

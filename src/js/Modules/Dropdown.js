@@ -31,7 +31,7 @@ Chicken.component('ui-dropdown', 'semantic-ui:modules.dropdown', function() {
 		uiMinCharacters: 1,
 		uiMatch: 'both',
 		uiSelectOnKeyDown: true,
-		uiForceSelection: true,
+		uiForceSelection: false,
 		uiAllowCategorySelection: false,
 		//uiPlaceholder: auto
 
@@ -45,7 +45,7 @@ Chicken.component('ui-dropdown', 'semantic-ui:modules.dropdown', function() {
 
 	this.modelMap = {};
 	this.beforeRender(() => {
-
+		
 		// Collection given?
 		if (this.get('source') instanceof Chicken.Data.Collection) {
 

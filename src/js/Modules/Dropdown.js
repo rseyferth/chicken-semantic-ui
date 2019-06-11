@@ -177,6 +177,9 @@ Chicken.component('ui-dropdown', 'semantic-ui:modules.dropdown', function() {
 
 				}
 
+				// Already in there?
+				if (this.get('value').find(v => v === value)) return;
+				
 				// Add the new value
 				this.get('value').add(value);
 
